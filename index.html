@@ -331,6 +331,33 @@ body::before{content:"";position:fixed;inset:0;background-image:radial-gradient(
 .edit-cancel{padding:11px 16px;background:transparent;color:var(--mid);border:1.5px solid rgba(0,0,0,.1);border-radius:11px;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
 .edit-cancel:hover{border-color:var(--wine);color:var(--wine);}
 
+
+/* TECHNICAL BACKUP TOOLS */
+.tech-backup-box{
+  background:#f7f9fc;border:1px solid rgba(30,58,95,.08);border-radius:14px;
+  padding:12px 14px;margin:0 0 16px;
+}
+.tech-backup-title{
+  font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mid);margin-bottom:8px;
+}
+.tech-backup-desc{
+  font-size:12px;line-height:1.55;color:var(--mid);margin-bottom:10px;
+}
+.tech-backup-row{
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.tech-backup-btn{
+  padding:9px 13px;border-radius:10px;border:1.5px solid rgba(30,58,95,.12);background:#fff;color:var(--navy);
+  font-family:"DM Sans",sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.18s;
+}
+.tech-backup-btn:hover{border-color:var(--navy);transform:translateY(-1px);}
+
+
+.auto-backup-note{
+  font-size:11px;line-height:1.5;color:var(--mid);margin-top:8px;
+}
+.auto-backup-note strong{color:var(--navy);}
+
 /* ── PASSWORD MODAL ── */
 .overlay{display:none;position:fixed;inset:0;background:rgba(15,25,45,.78);backdrop-filter:blur(6px);z-index:999;align-items:center;justify-content:center;}
 .overlay.open{display:flex;}
@@ -1242,21 +1269,6 @@ font-family:"DM Sans",sans-serif;
 }
 
 
-/* GLOBAL BACKUP */
-.global-backup-bar{
-  width:100%;max-width:760px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
-  margin:0 0 18px;
-}
-.global-backup-bar.page{
-  margin:-6px 0 18px;
-}
-.global-backup-btn{
-  padding:9px 14px;border-radius:10px;border:1.5px solid rgba(30,58,95,.12);
-  background:#fff;color:var(--navy);font-family:"DM Sans",sans-serif;font-size:12px;font-weight:700;
-  letter-spacing:.3px;cursor:pointer;transition:.2s;
-}
-.global-backup-btn:hover{border-color:var(--navy);transform:translateY(-1px);box-shadow:0 8px 18px rgba(30,58,95,.08);}
-.global-backup-btn.import{background:var(--cream);}
 
 </style>
 </head>
@@ -1278,10 +1290,7 @@ font-family:"DM Sans",sans-serif;
   </div>
   <div class="access-status" id="GATE_STATUS" style="width:100%;max-width:760px;margin:0 0 22px;">Choose <strong>Teacher</strong> or <strong>Student</strong> to continue.</div>
 
-  <div class="global-backup-bar">
-    <button class="global-backup-btn" type="button" onclick="cesExportAllBackup()">⬇ Export All Backup</button>
-    <button class="global-backup-btn import" type="button" onclick="cesPickImportAllBackup()">⬆ Import All Backup</button>
-  </div>
+  
 
   <div class="home-section">
     <span class="home-section-label">Activities</span>
@@ -1568,6 +1577,17 @@ font-family:"DM Sans",sans-serif;
 <div class="tpanel" id="TP">
   <div class="ptitle">Manage Cards <em>Teacher Mode</em></div>
 
+  <div class="tech-backup-box">
+    <div class="tech-backup-title">Technical Backup</div>
+    <div class="tech-backup-desc">Export or import only the Flashcards activity data.</div>
+    <div class="tech-backup-row">
+      <button class="tech-backup-btn" type="button" onclick="fcExportBackup()">⬇ Export Flashcards Backup</button>
+      <button class="tech-backup-btn" type="button" onclick="fcPickImportBackup()">⬆ Import Flashcards Backup</button>
+    </div>
+    <div class="auto-backup-note"><strong>Auto-Backup:</strong> every change in Flashcards is saved automatically.</div>
+  </div>
+
+
   <div class="ttabs">
     <div class="ttab active" data-tab="add">＋ Add Cards</div>
     <div class="ttab" data-tab="filter">🎯 Deck Filter</div>
@@ -1743,10 +1763,6 @@ font-family:"DM Sans",sans-serif;
   <div class="student-badge" id="SB_STUDENT_BADGE">Student · CES Student</div>
 </div>
 
-<div class="global-backup-bar page">
-  <button class="global-backup-btn" type="button" onclick="cesExportAllBackup()">⬇ Export All Backup</button>
-  <button class="global-backup-btn import" type="button" onclick="cesPickImportAllBackup()">⬆ Import All Backup</button>
-</div>
 
 <!-- LESSON MENU PANEL -->
 <div class="smenu-panel" id="SB_MENU_PANEL">
@@ -1915,6 +1931,17 @@ font-family:"DM Sans",sans-serif;
     </button>
   </div>
 
+  <div class="tech-backup-box" style="margin:16px 16px 0;">
+    <div class="tech-backup-title">Technical Backup</div>
+    <div class="tech-backup-desc">Export or import only the Sentence Builder activity data.</div>
+    <div class="tech-backup-row">
+      <button class="tech-backup-btn" type="button" onclick="sbExportBackup()">⬇ Export Sentence Backup</button>
+      <button class="tech-backup-btn" type="button" onclick="sbPickImportBackup()">⬆ Import Sentence Backup</button>
+    </div>
+    <div class="auto-backup-note"><strong>Auto-Backup:</strong> every change in Sentence Builder is saved automatically.</div>
+  </div>
+
+
   <div class="sbt-tabbar">
     <div class="sbt-tb active" id="STB_ADD"  onclick="sbtTab('add')">＋ Add Sentence</div>
     <div class="sbt-tb"        id="STB_LIST" onclick="sbtTab('list')">📋 Sentence List</div>
@@ -1964,7 +1991,10 @@ font-family:"DM Sans",sans-serif;
 
 </div>
 
-<input type="file" id="CES_GLOBAL_BACKUP_INPUT" accept=".json,application/json" style="display:none" onchange="cesImportAllBackup(this)"/>
+
+
+<input type="file" id="FC_BACKUP_INPUT" accept=".json,application/json" style="display:none" onchange="fcImportBackup(this)"/>
+<input type="file" id="SB_BACKUP_INPUT" accept=".json,application/json" style="display:none" onchange="sbImportBackup(this)"/>
 
 <script>
 /* NAV */
@@ -2328,7 +2358,7 @@ function buildBookGrid(){
       if(hasCards && !confirm("Book \""+b+"\" has "+allCards.filter(c=>c.book===b).length+" cards. Remove it from the list? (Cards keep their book tag)")){return;}
       BOOKS=BOOKS.filter(x=>x!==b);
       if(selBook===b) selBook=null;
-      buildBookGrid(); buildAllBookSelects(); saveBooks();
+      buildBookGrid(); buildAllBookSelects(); saveBooks(); try{ fcAutoBackup(); }catch(e){};
     };
 
     wrap.appendChild(btn);
@@ -2349,7 +2379,8 @@ $("BTN_ADD_BOOK").onclick=()=>{
   if(BOOKS.includes(val)){ $("BOOK_INPUT").style.borderColor="var(--wine)"; setTimeout(()=>$("BOOK_INPUT").style.borderColor="",800); return; }
   BOOKS.push(val);
   $("BOOK_INPUT").value="";
-  buildBookGrid(); buildAllBookSelects(); saveBooks();
+  buildBookGrid(); buildAllBookSelects(); saveBooks(); try{ fcAutoBackup(); }catch(e){};
+  try{ fcAutoBackup(); }catch(e){}
 };
 $("BOOK_INPUT").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("BTN_ADD_BOOK").click(); } });
 
@@ -2983,7 +3014,7 @@ $("ITX").addEventListener("keydown",e=>{
     const c=parseLine($("ITX").value);
     if(!c){ fb("Format: Word, pron, translation, context","err"); return; }
     allCards.push(c); $("ITX").value="";
-    fb('✓ "'+c.w+'" added!', "ok"); applyDeck(); saveCards();
+    fb('✓ "'+c.w+'" added!', "ok"); applyDeck(); saveCards(); try{ fcAutoBackup(); }catch(e){};
   }
 });
 
@@ -2994,7 +3025,7 @@ $("ITX").addEventListener("paste",()=>{
     if(lines.length<2) return;
     let n=0; lines.forEach(l=>{ const c=parseLine(l); if(c){allCards.push(c);n++;} });
     $("ITX").value="";
-    fb("✓ "+n+" card"+(n>1?"s":"")+" added!","ok"); applyDeck(); saveCards();
+    fb("✓ "+n+" card"+(n>1?"s":"")+" added!","ok"); applyDeck(); saveCards(); try{ fcAutoBackup(); }catch(e){};
   },50);
 });
 
@@ -3005,7 +3036,7 @@ $("BADD").onclick=()=>{
   let n=0; lines.forEach(l=>{ const c=parseLine(l); if(c){allCards.push(c);n++;} });
   $("ITX").value="";
   if(n) fb("✓ "+n+" card"+(n>1?"s":"")+" added!","ok"); else fb("No valid lines.","err");
-  applyDeck(); saveCards();
+  applyDeck(); saveCards(); try{ fcAutoBackup(); }catch(e){};
 };
 
 $("BRESET").onclick=()=>{
@@ -3721,7 +3752,7 @@ function sbtAdd(){
 
   const w=text.replace(/[^a-zA-Z ]/g,"").trim().split(/\s+/)[0].toUpperCase()||"SENT";
   sbCards.push({w,p:"",t:text,c:text,book,lesson,type:"other"});
-  sbtSaveAll();
+  sbtSaveAll(); try{ sbAutoBackup(); }catch(e){};
 
   document.getElementById("SBT_TA").value="";
   fb.className="sbt-ffb ok";
@@ -3773,7 +3804,7 @@ function sbtCardSave(i){
   const v=(ta?.value||"").trim();
   if(!v||v.split(/\s+/).length<2){ if(fb) fb.textContent="Too short."; return; }
   sbCards[i].c=v; sbCards[i].t=v;
-  sbtSaveAll();
+  sbtSaveAll(); try{ sbAutoBackup(); }catch(e){};
   if(fb){ fb.textContent="✓ Saved"; setTimeout(()=>{ if(fb)fb.textContent=""; },2000); }
   const prev=document.querySelector("#SBTC_"+i+" .sbt-card-sent");
   if(prev) prev.textContent=v;
@@ -3781,7 +3812,7 @@ function sbtCardSave(i){
 function sbtCardDel(i){
   if(!confirm("Delete this sentence?")) return;
   sbCards.splice(i,1);
-  sbtSaveAll();
+  sbtSaveAll(); try{ sbAutoBackup(); }catch(e){};
   sbtList();
 }
 async function sbtSaveAll(){
@@ -3814,10 +3845,6 @@ async function sbtSaveAll(){
   </button>
 </div>
 
-<div class="global-backup-bar page">
-  <button class="global-backup-btn" type="button" onclick="cesExportAllBackup()">⬇ Export All Backup</button>
-  <button class="global-backup-btn import" type="button" onclick="cesPickImportAllBackup()">⬆ Import All Backup</button>
-</div>
 
 <!-- LESSON MENU PANEL (reuses .smenu-panel styles from FC) -->
 <div class="smenu-panel" id="SS_MENU_PANEL">
@@ -3957,6 +3984,10 @@ async function sbtSaveAll(){
       <span class="sst-lcnt" id="SST_CNT"></span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 10px;align-items:flex-start;">
+
+      <div class="tech-backup-desc" style="margin:0 0 6px;">Technical backup for Sound &amp; Scene only.</div>
+      <div class="auto-backup-note" style="width:100%;"><strong>Auto-Backup:</strong> every round change is saved automatically.</div>
+
       <button class="ss-btn ss-btn-skip" type="button" onclick="sstExportBackup()">⬇ Export Backup</button>
       <button class="ss-btn ss-btn-skip" type="button" onclick="sstPickImport()">⬆ Import Backup</button>
       <details style="background:#fff;border:1px solid rgba(30,58,95,.12);border-radius:12px;padding:8px 10px;min-width:260px;max-width:520px;box-shadow:0 6px 18px rgba(20,40,64,.06);">
@@ -4733,7 +4764,7 @@ async function sstAdd(){
   if(sstImgData.some(d=>!d)){ fb.className="sst-fb err"; fb.textContent="Upload all 3 images."; return; }
 
   ssRounds.push({ book, lesson, sentence:sent, audio:sstAudioData, images:[...sstImgData], correct });
-  const saved = await ssSave();
+  const saved = await ssSave(); try{ await ssAutoBackup(); }catch(e){}
   if(!saved){ fb.className="sst-fb err"; fb.textContent="Could not save this round in local storage."; return; }
 
   // reset form
@@ -4781,7 +4812,7 @@ function sstList(){
 async function sstDel(i){
   if(!confirm("Delete this round?")) return;
   ssRounds.splice(i,1);
-  await ssSave();
+  await ssSave(); try{ await ssAutoBackup(); }catch(e){}
   sstFillBooks();
   sstList();
   ssmBuildBooks();
@@ -4851,7 +4882,7 @@ function sstImportBackup(input){
       }
       const replaceAll = confirm("Click OK to replace all current rounds with this backup. Click Cancel to merge with current rounds.");
       ssRounds = replaceAll ? imported : ssNormalizeRounds([...ssRounds, ...imported]);
-      await ssSave();
+      await ssSave(); try{ await ssAutoBackup(); }catch(e){}
       sstFillBooks();
       sstList();
       ssmBuildBooks();
@@ -4917,13 +4948,12 @@ ssEl("SSM_CLEAR").onclick=()=>{
 
 <button class="fs-global-btn" id="FS_GLOBAL_BTN" type="button" onclick="toggleGlobalFullscreen()">⛶ Full Screen</button>
 
+
+
 <script>
-/* GLOBAL BACKUP — ALL ACTIVITIES */
-const CES_GLOBAL_BACKUP_VERSION = 1;
+/* PER-ACTIVITY BACKUP */
 const CES_FC_KEY = "ces_flashcards_v2";
 const CES_BOOKS_KEY = "ces_books_v2";
-const CES_STUDENTS_KEY = "ces_student_access_v1";
-const CES_SS_KEY = "ces_ss_rounds_v1";
 
 function cesSafeParse(v, fallback){
   try{
@@ -4942,128 +4972,180 @@ function cesDownloadJSON(filename, obj){
   a.remove();
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
 }
-async function cesReadSoundSceneBackup(){
-  try{
-    if(typeof ssRounds !== "undefined" && Array.isArray(ssRounds) && ssRounds.length){
-      return ssRounds;
-    }
-  }catch(e){}
-  try{
-    if(typeof ssIDBGet === "function"){
-      const idbValue = await ssIDBGet(CES_SS_KEY);
-      const parsed = typeof ssExtractRounds === "function" ? ssExtractRounds(idbValue) : cesSafeParse(idbValue, []);
-      if(Array.isArray(parsed) && parsed.length) return parsed;
-    }
-  }catch(e){}
-  try{
-    const local = cesSafeParse(localStorage.getItem(CES_SS_KEY), []);
-    if(Array.isArray(local)) return local;
-    if(local && Array.isArray(local.rounds)) return local.rounds;
-  }catch(e){}
-  return [];
+function cesCurrentBooks(){
+  return (typeof BOOKS !== "undefined" && Array.isArray(BOOKS))
+    ? BOOKS
+    : cesSafeParse(localStorage.getItem(CES_BOOKS_KEY), []);
 }
-async function cesExportAllBackup(){
-  const books = (typeof BOOKS !== "undefined" && Array.isArray(BOOKS)) ? BOOKS : cesSafeParse(localStorage.getItem(CES_BOOKS_KEY), []);
-  const flashcards = (typeof allCards !== "undefined" && Array.isArray(allCards)) ? allCards : cesSafeParse(localStorage.getItem(CES_FC_KEY), []);
-  const students = (typeof studentAccessList !== "undefined" && Array.isArray(studentAccessList)) ? studentAccessList : cesSafeParse(localStorage.getItem(CES_STUDENTS_KEY), []);
-  const soundScene = await cesReadSoundSceneBackup();
-
+function cesCurrentFlashcards(){
+  return (typeof allCards !== "undefined" && Array.isArray(allCards))
+    ? allCards
+    : cesSafeParse(localStorage.getItem(CES_FC_KEY), []);
+}
+async function fcExportBackup(){
   const payload = {
     app: "CES Platform",
-    version: CES_GLOBAL_BACKUP_VERSION,
+    type: "flashcards",
     exportedAt: new Date().toISOString(),
-    data: {
-      books,
-      flashcards,
-      students,
-      soundScene
-    }
+    books: cesCurrentBooks(),
+    flashcards: cesCurrentFlashcards()
   };
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  cesDownloadJSON(`ces_platform_backup_${stamp}.json`, payload);
+  cesDownloadJSON(`ces_flashcards_backup_${stamp}.json`, payload);
 }
-function cesPickImportAllBackup(){
-  const inp = document.getElementById("CES_GLOBAL_BACKUP_INPUT");
+function fcPickImportBackup(){
+  const inp = document.getElementById("FC_BACKUP_INPUT");
   if(!inp) return;
   inp.value = "";
   inp.click();
 }
-async function cesImportAllBackup(input){
+async function fcImportBackup(input){
   const file = input && input.files && input.files[0];
   if(!file) return;
   try{
     const text = await file.text();
     const raw = cesSafeParse(text, null);
-    if(!raw) throw new Error("Invalid backup file.");
+    if(!raw) throw new Error("Invalid file");
 
-    let data = null;
+    let books = null;
+    let flashcards = null;
 
-    // Full global backup created by cesExportAllBackup
-    if(raw && raw.data){
-      data = raw.data || {};
-    }
-    // Legacy Sound & Scene backup format: { rounds:[...] }
-    else if(raw && Array.isArray(raw.rounds)){
-      data = { soundScene: raw.rounds };
-    }
-    // Direct array of Sound & Scene rounds
-    else if(Array.isArray(raw)){
-      data = { soundScene: raw };
-    }
-    // Generic single-key backup structures
-    else if(raw && (raw.flashcards || raw.books || raw.students || raw.soundScene)){
-      data = raw;
-    } else {
-      throw new Error("Unsupported backup structure.");
+    if(raw.data && (Array.isArray(raw.data.flashcards) || Array.isArray(raw.data.books))){
+      books = raw.data.books || null;
+      flashcards = raw.data.flashcards || null;
+    }else if(Array.isArray(raw.flashcards) || Array.isArray(raw.books)){
+      books = raw.books || null;
+      flashcards = raw.flashcards || null;
+    }else if(Array.isArray(raw)){
+      flashcards = raw;
+    }else{
+      throw new Error("Unsupported flashcards backup");
     }
 
-    let importedSomething = false;
-
-    if(Array.isArray(data.books)){
-      localStorage.setItem(CES_BOOKS_KEY, JSON.stringify(data.books));
-      try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_BOOKS_KEY, JSON.stringify(data.books), true); }catch(e){}
-      importedSomething = true;
+    if(Array.isArray(books)){
+      localStorage.setItem(CES_BOOKS_KEY, JSON.stringify(books));
+      try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_BOOKS_KEY, JSON.stringify(books), true); }catch(e){}
+    }
+    if(Array.isArray(flashcards)){
+      localStorage.setItem(CES_FC_KEY, JSON.stringify(flashcards));
+      try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_FC_KEY, JSON.stringify(flashcards), true); }catch(e){}
+    }else{
+      throw new Error("No flashcards found");
     }
 
-    if(Array.isArray(data.flashcards)){
-      localStorage.setItem(CES_FC_KEY, JSON.stringify(data.flashcards));
-      try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_FC_KEY, JSON.stringify(data.flashcards), true); }catch(e){}
-      importedSomething = true;
-    }
-
-    if(Array.isArray(data.students)){
-      localStorage.setItem(CES_STUDENTS_KEY, JSON.stringify(data.students));
-      importedSomething = true;
-    }
-
-    if(Array.isArray(data.soundScene)){
-      const rounds = typeof ssNormalizeRounds === "function" ? ssNormalizeRounds(data.soundScene) : data.soundScene;
-      const ssPayload = JSON.stringify(rounds);
-      localStorage.setItem(CES_SS_KEY, ssPayload);
-      try{
-        if(typeof ssIDBSet === "function" && typeof ssRoundPayload === "function"){
-          await ssIDBSet(CES_SS_KEY, ssRoundPayload(rounds));
-        }
-      }catch(e){}
-      try{
-        if(window.storage && typeof window.storage.set === "function"){
-          await window.storage.set(CES_SS_KEY, ssPayload, true);
-        }
-      }catch(e){}
-      importedSomething = true;
-    }
-
-    if(!importedSomething){
-      throw new Error("No supported data found in backup.");
-    }
-
-    alert("Backup imported successfully. The page will reload now.");
+    alert("Flashcards backup imported successfully. The page will reload now.");
     location.reload();
   }catch(err){
-    alert("Could not import this backup file. Use a file exported by Export All Backup or a Sound & Scene backup JSON.");
+    alert("Could not import this Flashcards backup.");
   }finally{
     if(input) input.value = "";
   }
+}
+
+function sbExportBackup(){
+  const rows = cesCurrentFlashcards().filter(c => (c.c||"").trim().split(/\s+/).filter(Boolean).length >= 2);
+  const payload = {
+    app: "CES Platform",
+    type: "sentence_builder",
+    exportedAt: new Date().toISOString(),
+    books: cesCurrentBooks(),
+    sentences: rows.map(c=>({ w:c.w||"", t:c.t||"", c:c.c||"", book:c.book||"", lesson:c.lesson||null, type:c.type||"other" }))
+  };
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  cesDownloadJSON(`ces_sentence_builder_backup_${stamp}.json`, payload);
+}
+function sbPickImportBackup(){
+  const inp = document.getElementById("SB_BACKUP_INPUT");
+  if(!inp) return;
+  inp.value = "";
+  inp.click();
+}
+async function sbImportBackup(input){
+  const file = input && input.files && input.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const raw = cesSafeParse(text, null);
+    if(!raw) throw new Error("Invalid file");
+
+    let books = null;
+    let sentences = null;
+
+    if(raw.data && Array.isArray(raw.data.sentences)){
+      books = raw.data.books || null;
+      sentences = raw.data.sentences;
+    }else if(Array.isArray(raw.sentences)){
+      books = raw.books || null;
+      sentences = raw.sentences;
+    }else{
+      throw new Error("Unsupported sentence backup");
+    }
+
+    const current = cesCurrentFlashcards();
+    const keep = current.filter(c => !((c.c||"").trim().split(/\s+/).filter(Boolean).length >= 2));
+    const imported = sentences.map(s => ({
+      w: (s.w || (String(s.c||"").replace(/[^a-zA-Z ]/g,"").trim().split(/\s+/)[0] || "SENT")).toUpperCase(),
+      p: s.p || "",
+      t: s.t || s.c || "",
+      c: s.c || "",
+      book: s.book || "",
+      lesson: s.lesson || null,
+      type: s.type || "other"
+    })).filter(c => c.c && c.book && c.lesson);
+
+    const merged = keep.concat(imported);
+
+    if(Array.isArray(books)){
+      localStorage.setItem(CES_BOOKS_KEY, JSON.stringify(books));
+      try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_BOOKS_KEY, JSON.stringify(books), true); }catch(e){}
+    }
+    localStorage.setItem(CES_FC_KEY, JSON.stringify(merged));
+    try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_FC_KEY, JSON.stringify(merged), true); }catch(e){}
+
+    alert("Sentence Builder backup imported successfully. The page will reload now.");
+    location.reload();
+  }catch(err){
+    alert("Could not import this Sentence Builder backup.");
+  }finally{
+    if(input) input.value = "";
+  }
+}
+</script>
+
+
+<script>
+/* AUTO-BACKUP HELPERS */
+function cesAutoBackupSave(name, obj){
+  try{
+    localStorage.setItem(name, JSON.stringify({
+      savedAt: new Date().toISOString(),
+      data: obj
+    }));
+  }catch(e){}
+}
+function fcAutoBackup(){
+  try{
+    const books = (typeof BOOKS !== "undefined" && Array.isArray(BOOKS)) ? BOOKS : [];
+    const flashcards = (typeof allCards !== "undefined" && Array.isArray(allCards)) ? allCards : [];
+    cesAutoBackupSave("ces_auto_backup_flashcards_v1", { books, flashcards });
+  }catch(e){}
+}
+function sbAutoBackup(){
+  try{
+    const books = (typeof BOOKS !== "undefined" && Array.isArray(BOOKS)) ? BOOKS : [];
+    const rows = (typeof sbCards !== "undefined" && Array.isArray(sbCards))
+      ? sbCards.filter(c => (c.c||"").trim().split(/\s+/).filter(Boolean).length >= 2)
+      : [];
+    cesAutoBackupSave("ces_auto_backup_sentence_builder_v1", { books, sentences: rows });
+  }catch(e){}
+}
+async function ssAutoBackup(){
+  try{
+    let rounds = [];
+    if(typeof ssRounds !== "undefined" && Array.isArray(ssRounds)) rounds = ssRounds;
+    else if(typeof cesReadSoundSceneBackup === "function") rounds = await cesReadSoundSceneBackup();
+    cesAutoBackupSave("ces_auto_backup_sound_scene_v1", { soundScene: rounds });
+  }catch(e){}
 }
 </script>
 
