@@ -5227,5 +5227,85 @@ async function ssAutoBackup(){
 }
 </script>
 
+
+<script type="module">
+/* ════════════════════════════════════════
+   FIREBASE READY BLOCK
+   Paste your real firebaseConfig below.
+   After that, the page will be connected to Firebase.
+════════════════════════════════════════ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBj04p9bnOICYZjwrWAtOQRiiNpuk7jslE",
+  authDomain: "ces-platform.firebaseapp.com",
+  projectId: "ces-platform",
+  storageBucket: "ces-platform.firebasestorage.app",
+  messagingSenderId: "362566865240",
+  appId: "1:362566865240:web:df51ed10ffed2339e5552d",
+  measurementId: "G-P0MEZTRP94"
+};
+
+function cesFirebaseReady(cfg){
+  return cfg &&
+    cfg.apiKey && cfg.apiKey !== "PASTE_HERE" &&
+    cfg.projectId && cfg.projectId !== "PASTE_HERE";
+}
+
+window.cesFirebase = {
+  enabled: false,
+  app: null,
+  db: null,
+  collections: {
+    students: "students",
+    flashcards: "flashcards",
+    soundScene: "soundScene",
+    sentenceBuilder: "sentenceBuilder"
+  }
+};
+
+if(cesFirebaseReady(firebaseConfig)){
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.cesFirebase = {
+    enabled: true,
+    app,
+    db,
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    setDoc,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    serverTimestamp,
+    collections: {
+      students: "students",
+      flashcards: "flashcards",
+      soundScene: "soundScene",
+      sentenceBuilder: "sentenceBuilder"
+    }
+  };
+
+  console.log("CES Firebase connected.");
+} else {
+  console.log("CES Firebase block added. Paste your real firebaseConfig to activate.");
+}
+</script>
+
 </body>
 </html>
