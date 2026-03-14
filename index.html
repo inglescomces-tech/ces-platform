@@ -1241,25 +1241,6 @@ font-family:"DM Sans",sans-serif;
   .fs-global-btn{width:auto;max-width:calc(100vw - 24px);}
 }
 
-
-.version-badge{
-  position:fixed;
-  right:12px;
-  bottom:12px;
-  z-index:9999;
-  background:rgba(20,40,64,.92);
-  color:#eef1f6;
-  border:1px solid rgba(200,208,220,.18);
-  border-radius:12px;
-  padding:8px 10px;
-  font-family:"DM Sans",sans-serif;
-  font-size:11px;
-  line-height:1.35;
-  box-shadow:0 10px 24px rgba(0,0,0,.18);
-}
-.version-badge strong{color:#fff;font-weight:700;}
-.version-badge .v-sub{opacity:.72;font-size:10px;display:block;margin-top:2px;}
-
 </style>
 </head>
 <body>
@@ -2065,7 +2046,7 @@ function gateOpenTeacher(){
 function gateCloseTeacher(){
   document.getElementById("TEACHER_GATE_OV").classList.remove("open");
 }
-function gateSubmitTeacher(){
+async function gateSubmitTeacher(){
   const pass = (document.getElementById("TEACHER_GATE_PASS")?.value || "").trim();
   const err = document.getElementById("TEACHER_GATE_ERR");
   if(pass !== TEACHER_GATE_PASSWORD){
@@ -2076,6 +2057,7 @@ function gateSubmitTeacher(){
   teacherAccessOpen = true;
   gateSession = { role:"teacher", login:"", name:"" };
   gateSaveSession();
+  if(window.cesLoadStudentsNow) await window.cesLoadStudentsNow();
   gateRenderTeacherList();
   document.getElementById("TEACHER_ACCESS_PANEL").classList.add("open");
   gateUpdateUI();
@@ -2084,7 +2066,7 @@ function gateCloseTeacherPanel(){
   teacherAccessOpen = false;
   document.getElementById("TEACHER_ACCESS_PANEL").classList.remove("open");
 }
-function teacherSaveStudentAccess(){
+async function teacherSaveStudentAccess(){
   gateLoadStudents();
   const name = (document.getElementById("TA_NAME")?.value || "").trim();
   const login = gateNormalize(document.getElementById("TA_LOGIN")?.value);
@@ -2101,6 +2083,7 @@ function teacherSaveStudentAccess(){
   else studentAccessList.unshift(item);
 
   gateSaveStudents();
+  if(window.cesSyncStudentsNow) await window.cesSyncStudentsNow();
   gateRenderTeacherList();
 
   document.getElementById("TA_NAME").value = "";
@@ -2117,10 +2100,11 @@ function teacherEditStudentAccess(login){
   document.getElementById("TA_PASSWORD").value = item.password || "";
   document.getElementById("TA_LOGIN").focus();
 }
-function teacherDeleteStudentAccess(login){
+async function teacherDeleteStudentAccess(login){
   gateLoadStudents();
   studentAccessList = studentAccessList.filter(s => gateNormalize(s.login) !== gateNormalize(login));
   gateSaveStudents();
+  if(window.cesSyncStudentsNow) await window.cesSyncStudentsNow();
   gateRenderTeacherList();
 }
 function gateRenderTeacherList(){
@@ -2156,8 +2140,9 @@ function gateOpenStudent(){
 function gateCloseStudent(){
   document.getElementById("STUDENT_GATE_OV").classList.remove("open");
 }
-function gateSubmitStudent(){
+async function gateSubmitStudent(){
   gateLoadStudents();
+  if(window.cesLoadStudentsNow) await window.cesLoadStudentsNow();
   const login = gateNormalize(document.getElementById("STUDENT_GATE_LOGIN")?.value);
   const password = (document.getElementById("STUDENT_GATE_PASS")?.value || "").trim();
   const err = document.getElementById("STUDENT_GATE_ERR");
@@ -2239,6 +2224,7 @@ gateLoadStudents();
 gateLoadSession();
 gateUpdateUI();
 gateRefreshStudentLabels();
+setTimeout(()=>{ try{ window.cesLoadStudentsNow && window.cesLoadStudentsNow(); }catch(e){} }, 1400);
 </script>
 <script>
 /* FLASHCARD APP */
@@ -2288,6 +2274,7 @@ const DEFAULT_BOOKS = ["A1","A1+","A2","A2+","B1","B1+","C1","C1+"];
 function saveBooks(){
   try{ localStorage.setItem("ces_books_v2", JSON.stringify(BOOKS)); }catch(e){}
   try{ window.storage && window.storage.set("ces_books_v2", JSON.stringify(BOOKS), true); }catch(e){}
+  try{ window.cesSyncFlashcardsNow && window.cesSyncFlashcardsNow(); }catch(e){}
 }
 function loadBooks(){
   try{
@@ -3193,6 +3180,7 @@ async function saveCards(){
   }catch(e){
     showSyncStatus("✓ Saved locally", "var(--mid)");
   }
+  try{ if(window.cesSyncFlashcardsNow) await window.cesSyncFlashcardsNow(); }catch(e){}
 }
 
 async function loadCards(){
@@ -3778,6 +3766,10 @@ async function sbtSaveAll(){
   const d=JSON.stringify(sbCards);
   try{ await window.storage.set("ces_flashcards_v2",d,true); }catch(e){}
   try{ localStorage.setItem("ces_flashcards_v2",d); }catch(e){}
+  try{
+    window.allCards = sbCards;
+    if(window.cesSyncFlashcardsNow) await window.cesSyncFlashcardsNow();
+  }catch(e){}
 }
 </script>
 
@@ -4245,6 +4237,9 @@ async function ssSave(){
     try{
       localStorage.setItem(SS_KEY, payloadStr);
       saved = true;
+    }catch(e){}
+    try{
+      if(window.cesSyncSoundSceneNow) await window.cesSyncSoundSceneNow();
     }catch(e){}
     return saved;
   })();
@@ -4902,65 +4897,77 @@ ssEl("SSM_CLEAR").onclick=()=>{
 
 <button class="fs-global-btn" id="FS_GLOBAL_BTN" type="button" onclick="toggleGlobalFullscreen()">⛶ Full Screen</button>
 
-<script type="module">
-/* ════════════════════════════════════════
-   CES FIREBASE SYNC
-   Syncs students, flashcards/books, and soundScene to Firestore.
-════════════════════════════════════════ */
-function cesFb(){ return window.cesFirebase && window.cesFirebase.enabled ? window.cesFirebase : null; }
-
-async function cesSet(collectionName, docId, data){
-  const fb = cesFb(); if(!fb) return false;
+<script>
+/* CES FIREBASE LIVE SYNC — FINAL */
+function cesFbReady(){
+  return !!(window.cesFirebase && window.cesFirebase.enabled && window.cesFirebase.db);
+}
+async function cesSetSharedDoc(collectionName, docId, data){
+  if(!cesFbReady()) return false;
   try{
+    const fb = window.cesFirebase;
     await fb.setDoc(fb.doc(fb.db, collectionName, docId), data);
     return true;
-  }catch(e){
-    console.error("Firebase save failed:", collectionName, docId, e);
+  }catch(err){
+    console.error("CES Firebase set failed:", collectionName, docId, err);
     return false;
   }
 }
-async function cesGet(collectionName, docId){
-  const fb = cesFb(); if(!fb) return null;
+async function cesGetSharedDoc(collectionName, docId){
+  if(!cesFbReady()) return null;
   try{
+    const fb = window.cesFirebase;
     const snap = await fb.getDoc(fb.doc(fb.db, collectionName, docId));
     return snap.exists() ? snap.data() : null;
-  }catch(e){
-    console.error("Firebase load failed:", collectionName, docId, e);
+  }catch(err){
+    console.error("CES Firebase get failed:", collectionName, docId, err);
     return null;
   }
 }
 
-async function cesSyncStudents(){
-  const items = Array.isArray(window.studentAccessList) ? window.studentAccessList : [];
-  await cesSet("students", "shared", { items, updatedAt: Date.now() });
-}
-async function cesHydrateStudents(){
-  const data = await cesGet("students", "shared");
+window.cesSyncStudentsNow = async function(){
+  if(!Array.isArray(window.studentAccessList)) return false;
+  const ok = await cesSetSharedDoc("students", "shared", {
+    items: window.studentAccessList,
+    updatedAt: Date.now()
+  });
+  return ok;
+};
+
+window.cesLoadStudentsNow = async function(){
+  const data = await cesGetSharedDoc("students", "shared");
   if(data && Array.isArray(data.items)){
     window.studentAccessList = data.items;
     try{ localStorage.setItem("ces_student_access_v1", JSON.stringify(data.items)); }catch(e){}
     if(typeof window.gateRenderTeacherList === "function") window.gateRenderTeacherList();
+    return true;
   }
-}
+  return false;
+};
 
-async function cesSyncFlashcards(){
+window.cesSyncFlashcardsNow = async function(){
   const books = Array.isArray(window.BOOKS) ? window.BOOKS : [];
   const cards = Array.isArray(window.allCards) ? window.allCards : [];
-  await cesSet("flashcards", "books", { items: books, updatedAt: Date.now() });
-  await cesSet("flashcards", "cards", { items: cards, updatedAt: Date.now() });
-}
-async function cesHydrateFlashcards(){
-  const booksData = await cesGet("flashcards", "books");
-  const cardsData = await cesGet("flashcards", "cards");
+  const a = await cesSetSharedDoc("flashcards", "books", { items: books, updatedAt: Date.now() });
+  const b = await cesSetSharedDoc("flashcards", "cards", { items: cards, updatedAt: Date.now() });
+  return !!(a || b);
+};
+
+window.cesLoadFlashcardsNow = async function(){
+  const booksData = await cesGetSharedDoc("flashcards", "books");
+  const cardsData = await cesGetSharedDoc("flashcards", "cards");
+  let changed = false;
 
   if(booksData && Array.isArray(booksData.items)){
     window.BOOKS = booksData.items;
     try{ localStorage.setItem("ces_books_v2", JSON.stringify(window.BOOKS)); }catch(e){}
+    changed = true;
   }
   if(cardsData && Array.isArray(cardsData.items)){
     window.allCards = cardsData.items;
     window.sbCards = cardsData.items;
-    try{ localStorage.setItem("ces_flashcards_v2", JSON.stringify(window.allCards)); }catch(e){}
+    try{ localStorage.setItem("ces_flashcards_v2", JSON.stringify(cardsData.items)); }catch(e){}
+    changed = true;
   }
 
   try{
@@ -4972,96 +4979,50 @@ async function cesHydrateFlashcards(){
     if(typeof window.sbtFillBooks === "function") window.sbtFillBooks();
     if(typeof window.sbtList === "function") window.sbtList();
   }catch(e){}
-}
 
-async function cesSyncSoundScene(){
+  return changed;
+};
+
+window.cesSyncSoundSceneNow = async function(){
   const rounds = Array.isArray(window.ssRounds) ? window.ssRounds : [];
-  await cesSet("soundScene", "rounds", { items: rounds, updatedAt: Date.now() });
-}
-async function cesHydrateSoundScene(){
-  const data = await cesGet("soundScene", "rounds");
+  return await cesSetSharedDoc("soundScene", "rounds", {
+    items: rounds,
+    updatedAt: Date.now()
+  });
+};
+
+window.cesLoadSoundSceneNow = async function(){
+  const data = await cesGetSharedDoc("soundScene", "rounds");
   if(data && Array.isArray(data.items)){
     window.ssRounds = data.items;
     try{
       if(typeof window.ssRoundPayload === "function"){
-        localStorage.setItem("ces_ss_rounds_v1", JSON.stringify(window.ssRoundPayload(window.ssRounds)));
+        localStorage.setItem("ces_ss_rounds_v1", JSON.stringify(window.ssRoundPayload(data.items)));
       }
     }catch(e){}
     try{
       if(typeof window.ssmBuildBooks === "function") window.ssmBuildBooks();
       if(typeof window.ssmUpdateMatch === "function") window.ssmUpdateMatch();
     }catch(e){}
+    return true;
   }
-}
+  return false;
+};
 
-function cesWrapSaves(){
-  if(window.__cesFirebaseWrapped) return;
-  window.__cesFirebaseWrapped = true;
+window.cesHydrateAllFromFirebase = async function(){
+  if(!cesFbReady()) return false;
+  await window.cesLoadStudentsNow();
+  await window.cesLoadFlashcardsNow();
+  await window.cesLoadSoundSceneNow();
+  return true;
+};
 
-  if(typeof window.gateSaveStudents === "function"){
-    const orig = window.gateSaveStudents;
-    window.gateSaveStudents = function(...args){
-      const result = orig.apply(this, args);
-      cesSyncStudents();
-      return result;
-    };
+setTimeout(()=>{
+  if(cesFbReady()){
+    window.cesHydrateAllFromFirebase();
   }
-
-  if(typeof window.saveBooks === "function"){
-    const orig = window.saveBooks;
-    window.saveBooks = function(...args){
-      const result = orig.apply(this, args);
-      cesSyncFlashcards();
-      return result;
-    };
-  }
-
-  if(typeof window.saveCards === "function"){
-    const orig = window.saveCards;
-    window.saveCards = async function(...args){
-      const result = await orig.apply(this, args);
-      await cesSyncFlashcards();
-      return result;
-    };
-  }
-
-  if(typeof window.sbtSaveAll === "function"){
-    const orig = window.sbtSaveAll;
-    window.sbtSaveAll = async function(...args){
-      const result = await orig.apply(this, args);
-      await cesSyncFlashcards();
-      return result;
-    };
-  }
-
-  if(typeof window.ssSave === "function"){
-    const orig = window.ssSave;
-    window.ssSave = async function(...args){
-      const result = await orig.apply(this, args);
-      await cesSyncSoundScene();
-      return result;
-    };
-  }
-}
-
-async function cesStartFirebaseSync(){
-  if(!cesFb()) return;
-  cesWrapSaves();
-  await cesHydrateStudents();
-  await cesHydrateFlashcards();
-  await cesHydrateSoundScene();
-  console.log("CES Firebase sync ready.");
-}
-
-setTimeout(cesStartFirebaseSync, 900);
-window.cesStartFirebaseSync = cesStartFirebaseSync;
+}, 1200);
 </script>
-
-
-<div class="version-badge" id="CES_VERSION_BADGE">
-  <strong>CES Version</strong><br>v2026.03.14-mobile-check-1
-  <span class="v-sub">Use this to check if mobile opened the latest file.</span>
-</div>
 
 </body>
 </html>
