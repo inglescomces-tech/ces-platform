@@ -4994,29 +4994,55 @@ async function cesImportAllBackup(input){
   try{
     const text = await file.text();
     const raw = cesSafeParse(text, null);
-    if(!raw || !raw.data) throw new Error("Invalid backup file.");
-    const data = raw.data || {};
+    if(!raw) throw new Error("Invalid backup file.");
+
+    let data = null;
+
+    // Full global backup created by cesExportAllBackup
+    if(raw && raw.data){
+      data = raw.data || {};
+    }
+    // Legacy Sound & Scene backup format: { rounds:[...] }
+    else if(raw && Array.isArray(raw.rounds)){
+      data = { soundScene: raw.rounds };
+    }
+    // Direct array of Sound & Scene rounds
+    else if(Array.isArray(raw)){
+      data = { soundScene: raw };
+    }
+    // Generic single-key backup structures
+    else if(raw && (raw.flashcards || raw.books || raw.students || raw.soundScene)){
+      data = raw;
+    } else {
+      throw new Error("Unsupported backup structure.");
+    }
+
+    let importedSomething = false;
 
     if(Array.isArray(data.books)){
       localStorage.setItem(CES_BOOKS_KEY, JSON.stringify(data.books));
       try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_BOOKS_KEY, JSON.stringify(data.books), true); }catch(e){}
+      importedSomething = true;
     }
 
     if(Array.isArray(data.flashcards)){
       localStorage.setItem(CES_FC_KEY, JSON.stringify(data.flashcards));
       try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_FC_KEY, JSON.stringify(data.flashcards), true); }catch(e){}
+      importedSomething = true;
     }
 
     if(Array.isArray(data.students)){
       localStorage.setItem(CES_STUDENTS_KEY, JSON.stringify(data.students));
+      importedSomething = true;
     }
 
     if(Array.isArray(data.soundScene)){
-      const ssPayload = JSON.stringify(data.soundScene);
+      const rounds = typeof ssNormalizeRounds === "function" ? ssNormalizeRounds(data.soundScene) : data.soundScene;
+      const ssPayload = JSON.stringify(rounds);
       localStorage.setItem(CES_SS_KEY, ssPayload);
       try{
         if(typeof ssIDBSet === "function" && typeof ssRoundPayload === "function"){
-          await ssIDBSet(CES_SS_KEY, ssRoundPayload(data.soundScene));
+          await ssIDBSet(CES_SS_KEY, ssRoundPayload(rounds));
         }
       }catch(e){}
       try{
@@ -5024,12 +5050,17 @@ async function cesImportAllBackup(input){
           await window.storage.set(CES_SS_KEY, ssPayload, true);
         }
       }catch(e){}
+      importedSomething = true;
+    }
+
+    if(!importedSomething){
+      throw new Error("No supported data found in backup.");
     }
 
     alert("Backup imported successfully. The page will reload now.");
     location.reload();
   }catch(err){
-    alert("Could not import this backup file.");
+    alert("Could not import this backup file. Use a file exported by Export All Backup or a Sound & Scene backup JSON.");
   }finally{
     if(input) input.value = "";
   }
