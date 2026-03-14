@@ -331,33 +331,6 @@ body::before{content:"";position:fixed;inset:0;background-image:radial-gradient(
 .edit-cancel{padding:11px 16px;background:transparent;color:var(--mid);border:1.5px solid rgba(0,0,0,.1);border-radius:11px;font-family:"DM Sans",sans-serif;font-size:14px;font-weight:600;cursor:pointer;}
 .edit-cancel:hover{border-color:var(--wine);color:var(--wine);}
 
-
-/* TECHNICAL BACKUP TOOLS */
-.tech-backup-box{
-  background:#f7f9fc;border:1px solid rgba(30,58,95,.08);border-radius:14px;
-  padding:12px 14px;margin:0 0 16px;
-}
-.tech-backup-title{
-  font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mid);margin-bottom:8px;
-}
-.tech-backup-desc{
-  font-size:12px;line-height:1.55;color:var(--mid);margin-bottom:10px;
-}
-.tech-backup-row{
-  display:flex;gap:8px;flex-wrap:wrap;
-}
-.tech-backup-btn{
-  padding:9px 13px;border-radius:10px;border:1.5px solid rgba(30,58,95,.12);background:#fff;color:var(--navy);
-  font-family:"DM Sans",sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.18s;
-}
-.tech-backup-btn:hover{border-color:var(--navy);transform:translateY(-1px);}
-
-
-.auto-backup-note{
-  font-size:11px;line-height:1.5;color:var(--mid);margin-top:8px;
-}
-.auto-backup-note strong{color:var(--navy);}
-
 /* ── PASSWORD MODAL ── */
 .overlay{display:none;position:fixed;inset:0;background:rgba(15,25,45,.78);backdrop-filter:blur(6px);z-index:999;align-items:center;justify-content:center;}
 .overlay.open{display:flex;}
@@ -1153,14 +1126,6 @@ font-family:"DM Sans",sans-serif;
   font-size:12px;font-weight:700;cursor:pointer;
 }
 .teacher-mini.danger{background:#fff1f1;color:var(--wine);}
-
-.teacher-tools-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
-.teacher-tools-btn{
-  padding:9px 12px;border:none;border-radius:10px;background:#eef2f8;color:var(--navy);
-  font-family:"DM Sans",sans-serif;font-size:12px;font-weight:700;cursor:pointer;
-}
-.teacher-tools-btn:hover{background:#e3ebf6;}
-
 @media(max-width:640px){
   .teacher-grid{grid-template-columns:1fr;}
 }
@@ -1276,8 +1241,6 @@ font-family:"DM Sans",sans-serif;
   .fs-global-btn{width:auto;max-width:calc(100vw - 24px);}
 }
 
-
-
 </style>
 </head>
 <body>
@@ -1297,8 +1260,6 @@ font-family:"DM Sans",sans-serif;
     <button class="access-btn outline" type="button" id="GATE_LOGOUT" onclick="gateLogout()" style="display:none;">Logout</button>
   </div>
   <div class="access-status" id="GATE_STATUS" style="width:100%;max-width:760px;margin:0 0 22px;">Choose <strong>Teacher</strong> or <strong>Student</strong> to continue.</div>
-
-  
 
   <div class="home-section">
     <span class="home-section-label">Activities</span>
@@ -1405,11 +1366,6 @@ font-family:"DM Sans",sans-serif;
 
   <div class="teacher-box">
     <h4>Registered Student Access</h4>
-    <div class="teacher-tools-row">
-      <button class="teacher-tools-btn" type="button" onclick="teacherExportStudentAccess()">⬇ Export Students</button>
-      <button class="teacher-tools-btn" type="button" onclick="teacherPickImportStudentAccess()">⬆ Import Students</button>
-    </div>
-    <div class="teacher-msg" id="TA_BACKUP_MSG"></div>
     <div class="teacher-list" id="TEACHER_ACCESS_LIST"></div>
   </div>
 </div>
@@ -1590,17 +1546,6 @@ font-family:"DM Sans",sans-serif;
 <div class="tpanel" id="TP">
   <div class="ptitle">Manage Cards <em>Teacher Mode</em></div>
 
-  <div class="tech-backup-box">
-    <div class="tech-backup-title">Technical Backup</div>
-    <div class="tech-backup-desc">Export or import only the Flashcards activity data.</div>
-    <div class="tech-backup-row">
-      <button class="tech-backup-btn" type="button" onclick="fcExportBackup()">⬇ Export Flashcards Backup</button>
-      <button class="tech-backup-btn" type="button" onclick="fcPickImportBackup()">⬆ Import Flashcards Backup</button>
-    </div>
-    <div class="auto-backup-note"><strong>Auto-Backup:</strong> every change in Flashcards is saved automatically.</div>
-  </div>
-
-
   <div class="ttabs">
     <div class="ttab active" data-tab="add">＋ Add Cards</div>
     <div class="ttab" data-tab="filter">🎯 Deck Filter</div>
@@ -1776,7 +1721,6 @@ font-family:"DM Sans",sans-serif;
   <div class="student-badge" id="SB_STUDENT_BADGE">Student · CES Student</div>
 </div>
 
-
 <!-- LESSON MENU PANEL -->
 <div class="smenu-panel" id="SB_MENU_PANEL">
   <div class="smenu-title">Book</div>
@@ -1944,17 +1888,6 @@ font-family:"DM Sans",sans-serif;
     </button>
   </div>
 
-  <div class="tech-backup-box" style="margin:16px 16px 0;">
-    <div class="tech-backup-title">Technical Backup</div>
-    <div class="tech-backup-desc">Export or import only the Sentence Builder activity data.</div>
-    <div class="tech-backup-row">
-      <button class="tech-backup-btn" type="button" onclick="sbExportBackup()">⬇ Export Sentence Backup</button>
-      <button class="tech-backup-btn" type="button" onclick="sbPickImportBackup()">⬆ Import Sentence Backup</button>
-    </div>
-    <div class="auto-backup-note"><strong>Auto-Backup:</strong> every change in Sentence Builder is saved automatically.</div>
-  </div>
-
-
   <div class="sbt-tabbar">
     <div class="sbt-tb active" id="STB_ADD"  onclick="sbtTab('add')">＋ Add Sentence</div>
     <div class="sbt-tb"        id="STB_LIST" onclick="sbtTab('list')">📋 Sentence List</div>
@@ -2003,12 +1936,6 @@ font-family:"DM Sans",sans-serif;
 </div>
 
 </div>
-
-
-
-<input type="file" id="FC_BACKUP_INPUT" accept=".json,application/json" style="display:none" onchange="fcImportBackup(this)"/>
-<input type="file" id="SB_BACKUP_INPUT" accept=".json,application/json" style="display:none" onchange="sbImportBackup(this)"/>
-<input type="file" id="TA_IMPORT_FILE" accept=".json,application/json" style="display:none" onchange="teacherImportStudentAccess(this)"/>
 
 <script>
 /* NAV */
@@ -2103,8 +2030,6 @@ function gateUpdateUI(){
   }else if(gateSession.role === "student"){
     const who = gateSession.name || gateSession.login || "student";
     status.innerHTML = 'Logged in as <strong>Student</strong>: ' + gateEsc(who) + '. Activities are unlocked.';
-  }else if(gateSession.role === "teacher"){
-    status.innerHTML = 'Logged in as <strong>Teacher</strong>. Activities are unlocked.';
   }else{
     status.innerHTML = 'Choose <strong>Teacher</strong> or <strong>Student</strong> to continue.';
   }
@@ -2179,68 +2104,6 @@ function teacherDeleteStudentAccess(login){
   gateSaveStudents();
   gateRenderTeacherList();
 }
-
-function teacherDownloadJSON(filename, obj){
-  const blob = new Blob([JSON.stringify(obj, null, 2)], {type:"application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 1000);
-}
-function teacherSetBackupMsg(msg){
-  const el = document.getElementById("TA_BACKUP_MSG");
-  if(el) el.textContent = msg || "";
-}
-function teacherExportStudentAccess(){
-  gateLoadStudents();
-  const payload = {
-    app: "CES Platform",
-    type: "student_access",
-    exportedAt: new Date().toISOString(),
-    students: studentAccessList
-  };
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  teacherDownloadJSON(`ces_students_backup_${stamp}.json`, payload);
-  teacherSetBackupMsg("Student records exported.");
-}
-function teacherPickImportStudentAccess(){
-  const inp = document.getElementById("TA_IMPORT_FILE");
-  if(!inp) return;
-  inp.value = "";
-  inp.click();
-}
-async function teacherImportStudentAccess(input){
-  const file = input && input.files && input.files[0];
-  if(!file) return;
-  try{
-    const text = await file.text();
-    const raw = JSON.parse(text);
-    let students = null;
-    if(Array.isArray(raw)) students = raw;
-    else if(raw && Array.isArray(raw.students)) students = raw.students;
-    else if(raw && raw.data && Array.isArray(raw.data.students)) students = raw.data.students;
-
-    if(!Array.isArray(students)) throw new Error("Invalid file");
-
-    studentAccessList = students.map(s => ({
-      name: String((s && s.name) || "").trim(),
-      login: gateNormalize((s && s.login) || ""),
-      password: String((s && s.password) || "").trim()
-    })).filter(s => s.login && s.password);
-
-    gateSaveStudents();
-    gateRenderTeacherList();
-    teacherSetBackupMsg("Student records imported successfully.");
-  }catch(e){
-    teacherSetBackupMsg("Could not import this student backup.");
-  }finally{
-    if(input) input.value = "";
-  }
-}
 function gateRenderTeacherList(){
   gateLoadStudents();
   const el = document.getElementById("TEACHER_ACCESS_LIST");
@@ -2306,7 +2169,7 @@ function gateLogout(){
   goHome();
 }
 function gateOpenActivity(pageId){
-  if(gateSession.role === "student" || gateSession.role === "teacher"){
+  if(gateSession.role === "student"){
     openPage(pageId);
     return;
   }
@@ -2436,7 +2299,7 @@ function buildBookGrid(){
       if(hasCards && !confirm("Book \""+b+"\" has "+allCards.filter(c=>c.book===b).length+" cards. Remove it from the list? (Cards keep their book tag)")){return;}
       BOOKS=BOOKS.filter(x=>x!==b);
       if(selBook===b) selBook=null;
-      buildBookGrid(); buildAllBookSelects(); saveBooks(); try{ fcAutoBackup(); }catch(e){};
+      buildBookGrid(); buildAllBookSelects(); saveBooks();
     };
 
     wrap.appendChild(btn);
@@ -2457,8 +2320,7 @@ $("BTN_ADD_BOOK").onclick=()=>{
   if(BOOKS.includes(val)){ $("BOOK_INPUT").style.borderColor="var(--wine)"; setTimeout(()=>$("BOOK_INPUT").style.borderColor="",800); return; }
   BOOKS.push(val);
   $("BOOK_INPUT").value="";
-  buildBookGrid(); buildAllBookSelects(); saveBooks(); try{ fcAutoBackup(); }catch(e){};
-  try{ fcAutoBackup(); }catch(e){}
+  buildBookGrid(); buildAllBookSelects(); saveBooks();
 };
 $("BOOK_INPUT").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); $("BTN_ADD_BOOK").click(); } });
 
@@ -3092,7 +2954,7 @@ $("ITX").addEventListener("keydown",e=>{
     const c=parseLine($("ITX").value);
     if(!c){ fb("Format: Word, pron, translation, context","err"); return; }
     allCards.push(c); $("ITX").value="";
-    fb('✓ "'+c.w+'" added!', "ok"); applyDeck(); saveCards(); try{ fcAutoBackup(); }catch(e){};
+    fb('✓ "'+c.w+'" added!', "ok"); applyDeck(); saveCards();
   }
 });
 
@@ -3103,7 +2965,7 @@ $("ITX").addEventListener("paste",()=>{
     if(lines.length<2) return;
     let n=0; lines.forEach(l=>{ const c=parseLine(l); if(c){allCards.push(c);n++;} });
     $("ITX").value="";
-    fb("✓ "+n+" card"+(n>1?"s":"")+" added!","ok"); applyDeck(); saveCards(); try{ fcAutoBackup(); }catch(e){};
+    fb("✓ "+n+" card"+(n>1?"s":"")+" added!","ok"); applyDeck(); saveCards();
   },50);
 });
 
@@ -3114,7 +2976,7 @@ $("BADD").onclick=()=>{
   let n=0; lines.forEach(l=>{ const c=parseLine(l); if(c){allCards.push(c);n++;} });
   $("ITX").value="";
   if(n) fb("✓ "+n+" card"+(n>1?"s":"")+" added!","ok"); else fb("No valid lines.","err");
-  applyDeck(); saveCards(); try{ fcAutoBackup(); }catch(e){};
+  applyDeck(); saveCards();
 };
 
 $("BRESET").onclick=()=>{
@@ -3830,7 +3692,7 @@ function sbtAdd(){
 
   const w=text.replace(/[^a-zA-Z ]/g,"").trim().split(/\s+/)[0].toUpperCase()||"SENT";
   sbCards.push({w,p:"",t:text,c:text,book,lesson,type:"other"});
-  sbtSaveAll(); try{ sbAutoBackup(); }catch(e){};
+  sbtSaveAll();
 
   document.getElementById("SBT_TA").value="";
   fb.className="sbt-ffb ok";
@@ -3882,7 +3744,7 @@ function sbtCardSave(i){
   const v=(ta?.value||"").trim();
   if(!v||v.split(/\s+/).length<2){ if(fb) fb.textContent="Too short."; return; }
   sbCards[i].c=v; sbCards[i].t=v;
-  sbtSaveAll(); try{ sbAutoBackup(); }catch(e){};
+  sbtSaveAll();
   if(fb){ fb.textContent="✓ Saved"; setTimeout(()=>{ if(fb)fb.textContent=""; },2000); }
   const prev=document.querySelector("#SBTC_"+i+" .sbt-card-sent");
   if(prev) prev.textContent=v;
@@ -3890,7 +3752,7 @@ function sbtCardSave(i){
 function sbtCardDel(i){
   if(!confirm("Delete this sentence?")) return;
   sbCards.splice(i,1);
-  sbtSaveAll(); try{ sbAutoBackup(); }catch(e){};
+  sbtSaveAll();
   sbtList();
 }
 async function sbtSaveAll(){
@@ -3922,7 +3784,6 @@ async function sbtSaveAll(){
     <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
 </div>
-
 
 <!-- LESSON MENU PANEL (reuses .smenu-panel styles from FC) -->
 <div class="smenu-panel" id="SS_MENU_PANEL">
@@ -4062,10 +3923,6 @@ async function sbtSaveAll(){
       <span class="sst-lcnt" id="SST_CNT"></span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 10px;align-items:flex-start;">
-
-      <div class="tech-backup-desc" style="margin:0 0 6px;">Technical backup for Sound &amp; Scene only.</div>
-      <div class="auto-backup-note" style="width:100%;"><strong>Auto-Backup:</strong> every round change is saved automatically.</div>
-
       <button class="ss-btn ss-btn-skip" type="button" onclick="sstExportBackup()">⬇ Export Backup</button>
       <button class="ss-btn ss-btn-skip" type="button" onclick="sstPickImport()">⬆ Import Backup</button>
       <details style="background:#fff;border:1px solid rgba(30,58,95,.12);border-radius:12px;padding:8px 10px;min-width:260px;max-width:520px;box-shadow:0 6px 18px rgba(20,40,64,.06);">
@@ -4842,7 +4699,7 @@ async function sstAdd(){
   if(sstImgData.some(d=>!d)){ fb.className="sst-fb err"; fb.textContent="Upload all 3 images."; return; }
 
   ssRounds.push({ book, lesson, sentence:sent, audio:sstAudioData, images:[...sstImgData], correct });
-  const saved = await ssSave(); try{ await ssAutoBackup(); }catch(e){}
+  const saved = await ssSave();
   if(!saved){ fb.className="sst-fb err"; fb.textContent="Could not save this round in local storage."; return; }
 
   // reset form
@@ -4890,7 +4747,7 @@ function sstList(){
 async function sstDel(i){
   if(!confirm("Delete this round?")) return;
   ssRounds.splice(i,1);
-  await ssSave(); try{ await ssAutoBackup(); }catch(e){}
+  await ssSave();
   sstFillBooks();
   sstList();
   ssmBuildBooks();
@@ -4960,7 +4817,7 @@ function sstImportBackup(input){
       }
       const replaceAll = confirm("Click OK to replace all current rounds with this backup. Click Cancel to merge with current rounds.");
       ssRounds = replaceAll ? imported : ssNormalizeRounds([...ssRounds, ...imported]);
-      await ssSave(); try{ await ssAutoBackup(); }catch(e){}
+      await ssSave();
       sstFillBooks();
       sstList();
       ssmBuildBooks();
@@ -5026,285 +4883,159 @@ ssEl("SSM_CLEAR").onclick=()=>{
 
 <button class="fs-global-btn" id="FS_GLOBAL_BTN" type="button" onclick="toggleGlobalFullscreen()">⛶ Full Screen</button>
 
-
-
-<script>
-/* PER-ACTIVITY BACKUP */
-const CES_FC_KEY = "ces_flashcards_v2";
-const CES_BOOKS_KEY = "ces_books_v2";
-
-function cesSafeParse(v, fallback){
-  try{
-    const p = typeof v === "string" ? JSON.parse(v) : v;
-    return p ?? fallback;
-  }catch(e){ return fallback; }
-}
-function cesDownloadJSON(filename, obj){
-  const blob = new Blob([JSON.stringify(obj, null, 2)], {type:"application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 1000);
-}
-function cesCurrentBooks(){
-  return (typeof BOOKS !== "undefined" && Array.isArray(BOOKS))
-    ? BOOKS
-    : cesSafeParse(localStorage.getItem(CES_BOOKS_KEY), []);
-}
-function cesCurrentFlashcards(){
-  return (typeof allCards !== "undefined" && Array.isArray(allCards))
-    ? allCards
-    : cesSafeParse(localStorage.getItem(CES_FC_KEY), []);
-}
-async function fcExportBackup(){
-  const payload = {
-    app: "CES Platform",
-    type: "flashcards",
-    exportedAt: new Date().toISOString(),
-    books: cesCurrentBooks(),
-    flashcards: cesCurrentFlashcards()
-  };
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  cesDownloadJSON(`ces_flashcards_backup_${stamp}.json`, payload);
-}
-function fcPickImportBackup(){
-  const inp = document.getElementById("FC_BACKUP_INPUT");
-  if(!inp) return;
-  inp.value = "";
-  inp.click();
-}
-async function fcImportBackup(input){
-  const file = input && input.files && input.files[0];
-  if(!file) return;
-  try{
-    const text = await file.text();
-    const raw = cesSafeParse(text, null);
-    if(!raw) throw new Error("Invalid file");
-
-    let books = null;
-    let flashcards = null;
-
-    if(raw.data && (Array.isArray(raw.data.flashcards) || Array.isArray(raw.data.books))){
-      books = raw.data.books || null;
-      flashcards = raw.data.flashcards || null;
-    }else if(Array.isArray(raw.flashcards) || Array.isArray(raw.books)){
-      books = raw.books || null;
-      flashcards = raw.flashcards || null;
-    }else if(Array.isArray(raw)){
-      flashcards = raw;
-    }else{
-      throw new Error("Unsupported flashcards backup");
-    }
-
-    if(Array.isArray(books)){
-      localStorage.setItem(CES_BOOKS_KEY, JSON.stringify(books));
-      try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_BOOKS_KEY, JSON.stringify(books), true); }catch(e){}
-    }
-    if(Array.isArray(flashcards)){
-      localStorage.setItem(CES_FC_KEY, JSON.stringify(flashcards));
-      try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_FC_KEY, JSON.stringify(flashcards), true); }catch(e){}
-    }else{
-      throw new Error("No flashcards found");
-    }
-
-    alert("Flashcards backup imported successfully. The page will reload now.");
-    location.reload();
-  }catch(err){
-    alert("Could not import this Flashcards backup.");
-  }finally{
-    if(input) input.value = "";
-  }
-}
-
-function sbExportBackup(){
-  const rows = cesCurrentFlashcards().filter(c => (c.c||"").trim().split(/\s+/).filter(Boolean).length >= 2);
-  const payload = {
-    app: "CES Platform",
-    type: "sentence_builder",
-    exportedAt: new Date().toISOString(),
-    books: cesCurrentBooks(),
-    sentences: rows.map(c=>({ w:c.w||"", t:c.t||"", c:c.c||"", book:c.book||"", lesson:c.lesson||null, type:c.type||"other" }))
-  };
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  cesDownloadJSON(`ces_sentence_builder_backup_${stamp}.json`, payload);
-}
-function sbPickImportBackup(){
-  const inp = document.getElementById("SB_BACKUP_INPUT");
-  if(!inp) return;
-  inp.value = "";
-  inp.click();
-}
-async function sbImportBackup(input){
-  const file = input && input.files && input.files[0];
-  if(!file) return;
-  try{
-    const text = await file.text();
-    const raw = cesSafeParse(text, null);
-    if(!raw) throw new Error("Invalid file");
-
-    let books = null;
-    let sentences = null;
-
-    if(raw.data && Array.isArray(raw.data.sentences)){
-      books = raw.data.books || null;
-      sentences = raw.data.sentences;
-    }else if(Array.isArray(raw.sentences)){
-      books = raw.books || null;
-      sentences = raw.sentences;
-    }else{
-      throw new Error("Unsupported sentence backup");
-    }
-
-    const current = cesCurrentFlashcards();
-    const keep = current.filter(c => !((c.c||"").trim().split(/\s+/).filter(Boolean).length >= 2));
-    const imported = sentences.map(s => ({
-      w: (s.w || (String(s.c||"").replace(/[^a-zA-Z ]/g,"").trim().split(/\s+/)[0] || "SENT")).toUpperCase(),
-      p: s.p || "",
-      t: s.t || s.c || "",
-      c: s.c || "",
-      book: s.book || "",
-      lesson: s.lesson || null,
-      type: s.type || "other"
-    })).filter(c => c.c && c.book && c.lesson);
-
-    const merged = keep.concat(imported);
-
-    if(Array.isArray(books)){
-      localStorage.setItem(CES_BOOKS_KEY, JSON.stringify(books));
-      try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_BOOKS_KEY, JSON.stringify(books), true); }catch(e){}
-    }
-    localStorage.setItem(CES_FC_KEY, JSON.stringify(merged));
-    try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_FC_KEY, JSON.stringify(merged), true); }catch(e){}
-
-    alert("Sentence Builder backup imported successfully. The page will reload now.");
-    location.reload();
-  }catch(err){
-    alert("Could not import this Sentence Builder backup.");
-  }finally{
-    if(input) input.value = "";
-  }
-}
-</script>
-
-
-<script>
-/* AUTO-BACKUP HELPERS */
-function cesAutoBackupSave(name, obj){
-  try{
-    localStorage.setItem(name, JSON.stringify({
-      savedAt: new Date().toISOString(),
-      data: obj
-    }));
-  }catch(e){}
-}
-function fcAutoBackup(){
-  try{
-    const books = (typeof BOOKS !== "undefined" && Array.isArray(BOOKS)) ? BOOKS : [];
-    const flashcards = (typeof allCards !== "undefined" && Array.isArray(allCards)) ? allCards : [];
-    cesAutoBackupSave("ces_auto_backup_flashcards_v1", { books, flashcards });
-  }catch(e){}
-}
-function sbAutoBackup(){
-  try{
-    const books = (typeof BOOKS !== "undefined" && Array.isArray(BOOKS)) ? BOOKS : [];
-    const rows = (typeof sbCards !== "undefined" && Array.isArray(sbCards))
-      ? sbCards.filter(c => (c.c||"").trim().split(/\s+/).filter(Boolean).length >= 2)
-      : [];
-    cesAutoBackupSave("ces_auto_backup_sentence_builder_v1", { books, sentences: rows });
-  }catch(e){}
-}
-async function ssAutoBackup(){
-  try{
-    let rounds = [];
-    if(typeof ssRounds !== "undefined" && Array.isArray(ssRounds)) rounds = ssRounds;
-    else if(typeof cesReadSoundSceneBackup === "function") rounds = await cesReadSoundSceneBackup();
-    cesAutoBackupSave("ces_auto_backup_sound_scene_v1", { soundScene: rounds });
-  }catch(e){}
-}
-</script>
-
-
 <script type="module">
 /* ════════════════════════════════════════
-   FIREBASE READY BLOCK
-   Paste your real firebaseConfig below.
-   After that, the page will be connected to Firebase.
+   CES FIREBASE SYNC
+   Syncs students, flashcards/books, and soundScene to Firestore.
 ════════════════════════════════════════ */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+function cesFb(){ return window.cesFirebase && window.cesFirebase.enabled ? window.cesFirebase : null; }
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBj04p9bnOICYZjwrWAtOQRiiNpuk7jslE",
-  authDomain: "ces-platform.firebaseapp.com",
-  projectId: "ces-platform",
-  storageBucket: "ces-platform.firebasestorage.app",
-  messagingSenderId: "362566865240",
-  appId: "1:362566865240:web:df51ed10ffed2339e5552d",
-  measurementId: "G-P0MEZTRP94"
-};
-
-function cesFirebaseReady(cfg){
-  return cfg &&
-    cfg.apiKey && cfg.apiKey !== "PASTE_HERE" &&
-    cfg.projectId && cfg.projectId !== "PASTE_HERE";
-}
-
-window.cesFirebase = {
-  enabled: false,
-  app: null,
-  db: null,
-  collections: {
-    students: "students",
-    flashcards: "flashcards",
-    soundScene: "soundScene",
-    sentenceBuilder: "sentenceBuilder"
+async function cesSet(collectionName, docId, data){
+  const fb = cesFb(); if(!fb) return false;
+  try{
+    await fb.setDoc(fb.doc(fb.db, collectionName, docId), data);
+    return true;
+  }catch(e){
+    console.error("Firebase save failed:", collectionName, docId, e);
+    return false;
   }
-};
-
-if(cesFirebaseReady(firebaseConfig)){
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  window.cesFirebase = {
-    enabled: true,
-    app,
-    db,
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    setDoc,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    serverTimestamp,
-    collections: {
-      students: "students",
-      flashcards: "flashcards",
-      soundScene: "soundScene",
-      sentenceBuilder: "sentenceBuilder"
-    }
-  };
-
-  console.log("CES Firebase connected.");
-} else {
-  console.log("CES Firebase block added. Paste your real firebaseConfig to activate.");
 }
+async function cesGet(collectionName, docId){
+  const fb = cesFb(); if(!fb) return null;
+  try{
+    const snap = await fb.getDoc(fb.doc(fb.db, collectionName, docId));
+    return snap.exists() ? snap.data() : null;
+  }catch(e){
+    console.error("Firebase load failed:", collectionName, docId, e);
+    return null;
+  }
+}
+
+async function cesSyncStudents(){
+  const items = Array.isArray(window.studentAccessList) ? window.studentAccessList : [];
+  await cesSet("students", "shared", { items, updatedAt: Date.now() });
+}
+async function cesHydrateStudents(){
+  const data = await cesGet("students", "shared");
+  if(data && Array.isArray(data.items)){
+    window.studentAccessList = data.items;
+    try{ localStorage.setItem("ces_student_access_v1", JSON.stringify(data.items)); }catch(e){}
+    if(typeof window.gateRenderTeacherList === "function") window.gateRenderTeacherList();
+  }
+}
+
+async function cesSyncFlashcards(){
+  const books = Array.isArray(window.BOOKS) ? window.BOOKS : [];
+  const cards = Array.isArray(window.allCards) ? window.allCards : [];
+  await cesSet("flashcards", "books", { items: books, updatedAt: Date.now() });
+  await cesSet("flashcards", "cards", { items: cards, updatedAt: Date.now() });
+}
+async function cesHydrateFlashcards(){
+  const booksData = await cesGet("flashcards", "books");
+  const cardsData = await cesGet("flashcards", "cards");
+
+  if(booksData && Array.isArray(booksData.items)){
+    window.BOOKS = booksData.items;
+    try{ localStorage.setItem("ces_books_v2", JSON.stringify(window.BOOKS)); }catch(e){}
+  }
+  if(cardsData && Array.isArray(cardsData.items)){
+    window.allCards = cardsData.items;
+    window.sbCards = cardsData.items;
+    try{ localStorage.setItem("ces_flashcards_v2", JSON.stringify(window.allCards)); }catch(e){}
+  }
+
+  try{
+    if(typeof window.buildBookGrid === "function") window.buildBookGrid();
+    if(typeof window.buildLessonGrid === "function") window.buildLessonGrid();
+    if(typeof window.updateRangeSelects === "function") window.updateRangeSelects();
+    if(typeof window.buildAllBookSelects === "function") window.buildAllBookSelects();
+    if(typeof window.updateApplyInfo === "function") window.updateApplyInfo();
+    if(typeof window.sbtFillBooks === "function") window.sbtFillBooks();
+    if(typeof window.sbtList === "function") window.sbtList();
+  }catch(e){}
+}
+
+async function cesSyncSoundScene(){
+  const rounds = Array.isArray(window.ssRounds) ? window.ssRounds : [];
+  await cesSet("soundScene", "rounds", { items: rounds, updatedAt: Date.now() });
+}
+async function cesHydrateSoundScene(){
+  const data = await cesGet("soundScene", "rounds");
+  if(data && Array.isArray(data.items)){
+    window.ssRounds = data.items;
+    try{
+      if(typeof window.ssRoundPayload === "function"){
+        localStorage.setItem("ces_ss_rounds_v1", JSON.stringify(window.ssRoundPayload(window.ssRounds)));
+      }
+    }catch(e){}
+    try{
+      if(typeof window.ssmBuildBooks === "function") window.ssmBuildBooks();
+      if(typeof window.ssmUpdateMatch === "function") window.ssmUpdateMatch();
+    }catch(e){}
+  }
+}
+
+function cesWrapSaves(){
+  if(window.__cesFirebaseWrapped) return;
+  window.__cesFirebaseWrapped = true;
+
+  if(typeof window.gateSaveStudents === "function"){
+    const orig = window.gateSaveStudents;
+    window.gateSaveStudents = function(...args){
+      const result = orig.apply(this, args);
+      cesSyncStudents();
+      return result;
+    };
+  }
+
+  if(typeof window.saveBooks === "function"){
+    const orig = window.saveBooks;
+    window.saveBooks = function(...args){
+      const result = orig.apply(this, args);
+      cesSyncFlashcards();
+      return result;
+    };
+  }
+
+  if(typeof window.saveCards === "function"){
+    const orig = window.saveCards;
+    window.saveCards = async function(...args){
+      const result = await orig.apply(this, args);
+      await cesSyncFlashcards();
+      return result;
+    };
+  }
+
+  if(typeof window.sbtSaveAll === "function"){
+    const orig = window.sbtSaveAll;
+    window.sbtSaveAll = async function(...args){
+      const result = await orig.apply(this, args);
+      await cesSyncFlashcards();
+      return result;
+    };
+  }
+
+  if(typeof window.ssSave === "function"){
+    const orig = window.ssSave;
+    window.ssSave = async function(...args){
+      const result = await orig.apply(this, args);
+      await cesSyncSoundScene();
+      return result;
+    };
+  }
+}
+
+async function cesStartFirebaseSync(){
+  if(!cesFb()) return;
+  cesWrapSaves();
+  await cesHydrateStudents();
+  await cesHydrateFlashcards();
+  await cesHydrateSoundScene();
+  console.log("CES Firebase sync ready.");
+}
+
+setTimeout(cesStartFirebaseSync, 900);
+window.cesStartFirebaseSync = cesStartFirebaseSync;
 </script>
 
 </body>
