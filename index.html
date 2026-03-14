@@ -1241,6 +1241,25 @@ font-family:"DM Sans",sans-serif;
   .fs-global-btn{width:auto;max-width:calc(100vw - 24px);}
 }
 
+
+.version-badge{
+  position:fixed;
+  right:12px;
+  bottom:12px;
+  z-index:9999;
+  background:rgba(20,40,64,.92);
+  color:#eef1f6;
+  border:1px solid rgba(200,208,220,.18);
+  border-radius:12px;
+  padding:8px 10px;
+  font-family:"DM Sans",sans-serif;
+  font-size:11px;
+  line-height:1.35;
+  box-shadow:0 10px 24px rgba(0,0,0,.18);
+}
+.version-badge strong{color:#fff;font-weight:700;}
+.version-badge .v-sub{opacity:.72;font-size:10px;display:block;margin-top:2px;}
+
 </style>
 </head>
 <body>
@@ -5037,6 +5056,12 @@ async function cesStartFirebaseSync(){
 setTimeout(cesStartFirebaseSync, 900);
 window.cesStartFirebaseSync = cesStartFirebaseSync;
 </script>
+
+
+<div class="version-badge" id="CES_VERSION_BADGE">
+  <strong>CES Version</strong><br>v2026.03.14-mobile-check-1
+  <span class="v-sub">Use this to check if mobile opened the latest file.</span>
+</div>
 
 </body>
 </html>
