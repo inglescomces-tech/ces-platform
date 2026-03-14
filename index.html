@@ -2103,6 +2103,8 @@ function gateUpdateUI(){
   }else if(gateSession.role === "student"){
     const who = gateSession.name || gateSession.login || "student";
     status.innerHTML = 'Logged in as <strong>Student</strong>: ' + gateEsc(who) + '. Activities are unlocked.';
+  }else if(gateSession.role === "teacher"){
+    status.innerHTML = 'Logged in as <strong>Teacher</strong>. Activities are unlocked.';
   }else{
     status.innerHTML = 'Choose <strong>Teacher</strong> or <strong>Student</strong> to continue.';
   }
@@ -2304,7 +2306,7 @@ function gateLogout(){
   goHome();
 }
 function gateOpenActivity(pageId){
-  if(gateSession.role === "student"){
+  if(gateSession.role === "student" || gateSession.role === "teacher"){
     openPage(pageId);
     return;
   }
