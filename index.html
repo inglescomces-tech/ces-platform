@@ -1241,6 +1241,23 @@ font-family:"DM Sans",sans-serif;
   .fs-global-btn{width:auto;max-width:calc(100vw - 24px);}
 }
 
+
+/* GLOBAL BACKUP */
+.global-backup-bar{
+  width:100%;max-width:760px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+  margin:0 0 18px;
+}
+.global-backup-bar.page{
+  margin:-6px 0 18px;
+}
+.global-backup-btn{
+  padding:9px 14px;border-radius:10px;border:1.5px solid rgba(30,58,95,.12);
+  background:#fff;color:var(--navy);font-family:"DM Sans",sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:.3px;cursor:pointer;transition:.2s;
+}
+.global-backup-btn:hover{border-color:var(--navy);transform:translateY(-1px);box-shadow:0 8px 18px rgba(30,58,95,.08);}
+.global-backup-btn.import{background:var(--cream);}
+
 </style>
 </head>
 <body>
@@ -1260,6 +1277,11 @@ font-family:"DM Sans",sans-serif;
     <button class="access-btn outline" type="button" id="GATE_LOGOUT" onclick="gateLogout()" style="display:none;">Logout</button>
   </div>
   <div class="access-status" id="GATE_STATUS" style="width:100%;max-width:760px;margin:0 0 22px;">Choose <strong>Teacher</strong> or <strong>Student</strong> to continue.</div>
+
+  <div class="global-backup-bar">
+    <button class="global-backup-btn" type="button" onclick="cesExportAllBackup()">⬇ Export All Backup</button>
+    <button class="global-backup-btn import" type="button" onclick="cesPickImportAllBackup()">⬆ Import All Backup</button>
+  </div>
 
   <div class="home-section">
     <span class="home-section-label">Activities</span>
@@ -1721,6 +1743,11 @@ font-family:"DM Sans",sans-serif;
   <div class="student-badge" id="SB_STUDENT_BADGE">Student · CES Student</div>
 </div>
 
+<div class="global-backup-bar page">
+  <button class="global-backup-btn" type="button" onclick="cesExportAllBackup()">⬇ Export All Backup</button>
+  <button class="global-backup-btn import" type="button" onclick="cesPickImportAllBackup()">⬆ Import All Backup</button>
+</div>
+
 <!-- LESSON MENU PANEL -->
 <div class="smenu-panel" id="SB_MENU_PANEL">
   <div class="smenu-title">Book</div>
@@ -1936,6 +1963,8 @@ font-family:"DM Sans",sans-serif;
 </div>
 
 </div>
+
+<input type="file" id="CES_GLOBAL_BACKUP_INPUT" accept=".json,application/json" style="display:none" onchange="cesImportAllBackup(this)"/>
 
 <script>
 /* NAV */
@@ -3785,6 +3814,11 @@ async function sbtSaveAll(){
   </button>
 </div>
 
+<div class="global-backup-bar page">
+  <button class="global-backup-btn" type="button" onclick="cesExportAllBackup()">⬇ Export All Backup</button>
+  <button class="global-backup-btn import" type="button" onclick="cesPickImportAllBackup()">⬆ Import All Backup</button>
+</div>
+
 <!-- LESSON MENU PANEL (reuses .smenu-panel styles from FC) -->
 <div class="smenu-panel" id="SS_MENU_PANEL">
   <div class="smenu-title">Choose Lesson</div>
@@ -4882,5 +4916,125 @@ ssEl("SSM_CLEAR").onclick=()=>{
 <footer class="ces-footer">CES · Educational Platform by Diego Bandeira · © 2026</footer>
 
 <button class="fs-global-btn" id="FS_GLOBAL_BTN" type="button" onclick="toggleGlobalFullscreen()">⛶ Full Screen</button>
+
+<script>
+/* GLOBAL BACKUP — ALL ACTIVITIES */
+const CES_GLOBAL_BACKUP_VERSION = 1;
+const CES_FC_KEY = "ces_flashcards_v2";
+const CES_BOOKS_KEY = "ces_books_v2";
+const CES_STUDENTS_KEY = "ces_student_access_v1";
+const CES_SS_KEY = "ces_ss_rounds_v1";
+
+function cesSafeParse(v, fallback){
+  try{
+    const p = typeof v === "string" ? JSON.parse(v) : v;
+    return p ?? fallback;
+  }catch(e){ return fallback; }
+}
+function cesDownloadJSON(filename, obj){
+  const blob = new Blob([JSON.stringify(obj, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+async function cesReadSoundSceneBackup(){
+  try{
+    if(typeof ssRounds !== "undefined" && Array.isArray(ssRounds) && ssRounds.length){
+      return ssRounds;
+    }
+  }catch(e){}
+  try{
+    if(typeof ssIDBGet === "function"){
+      const idbValue = await ssIDBGet(CES_SS_KEY);
+      const parsed = typeof ssExtractRounds === "function" ? ssExtractRounds(idbValue) : cesSafeParse(idbValue, []);
+      if(Array.isArray(parsed) && parsed.length) return parsed;
+    }
+  }catch(e){}
+  try{
+    const local = cesSafeParse(localStorage.getItem(CES_SS_KEY), []);
+    if(Array.isArray(local)) return local;
+    if(local && Array.isArray(local.rounds)) return local.rounds;
+  }catch(e){}
+  return [];
+}
+async function cesExportAllBackup(){
+  const books = (typeof BOOKS !== "undefined" && Array.isArray(BOOKS)) ? BOOKS : cesSafeParse(localStorage.getItem(CES_BOOKS_KEY), []);
+  const flashcards = (typeof allCards !== "undefined" && Array.isArray(allCards)) ? allCards : cesSafeParse(localStorage.getItem(CES_FC_KEY), []);
+  const students = (typeof studentAccessList !== "undefined" && Array.isArray(studentAccessList)) ? studentAccessList : cesSafeParse(localStorage.getItem(CES_STUDENTS_KEY), []);
+  const soundScene = await cesReadSoundSceneBackup();
+
+  const payload = {
+    app: "CES Platform",
+    version: CES_GLOBAL_BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    data: {
+      books,
+      flashcards,
+      students,
+      soundScene
+    }
+  };
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  cesDownloadJSON(`ces_platform_backup_${stamp}.json`, payload);
+}
+function cesPickImportAllBackup(){
+  const inp = document.getElementById("CES_GLOBAL_BACKUP_INPUT");
+  if(!inp) return;
+  inp.value = "";
+  inp.click();
+}
+async function cesImportAllBackup(input){
+  const file = input && input.files && input.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const raw = cesSafeParse(text, null);
+    if(!raw || !raw.data) throw new Error("Invalid backup file.");
+    const data = raw.data || {};
+
+    if(Array.isArray(data.books)){
+      localStorage.setItem(CES_BOOKS_KEY, JSON.stringify(data.books));
+      try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_BOOKS_KEY, JSON.stringify(data.books), true); }catch(e){}
+    }
+
+    if(Array.isArray(data.flashcards)){
+      localStorage.setItem(CES_FC_KEY, JSON.stringify(data.flashcards));
+      try{ if(window.storage && typeof window.storage.set === "function") await window.storage.set(CES_FC_KEY, JSON.stringify(data.flashcards), true); }catch(e){}
+    }
+
+    if(Array.isArray(data.students)){
+      localStorage.setItem(CES_STUDENTS_KEY, JSON.stringify(data.students));
+    }
+
+    if(Array.isArray(data.soundScene)){
+      const ssPayload = JSON.stringify(data.soundScene);
+      localStorage.setItem(CES_SS_KEY, ssPayload);
+      try{
+        if(typeof ssIDBSet === "function" && typeof ssRoundPayload === "function"){
+          await ssIDBSet(CES_SS_KEY, ssRoundPayload(data.soundScene));
+        }
+      }catch(e){}
+      try{
+        if(window.storage && typeof window.storage.set === "function"){
+          await window.storage.set(CES_SS_KEY, ssPayload, true);
+        }
+      }catch(e){}
+    }
+
+    alert("Backup imported successfully. The page will reload now.");
+    location.reload();
+  }catch(err){
+    alert("Could not import this backup file.");
+  }finally{
+    if(input) input.value = "";
+  }
+}
+</script>
+
 </body>
 </html>
