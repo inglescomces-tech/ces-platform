@@ -1153,6 +1153,14 @@ font-family:"DM Sans",sans-serif;
   font-size:12px;font-weight:700;cursor:pointer;
 }
 .teacher-mini.danger{background:#fff1f1;color:var(--wine);}
+
+.teacher-tools-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.teacher-tools-btn{
+  padding:9px 12px;border:none;border-radius:10px;background:#eef2f8;color:var(--navy);
+  font-family:"DM Sans",sans-serif;font-size:12px;font-weight:700;cursor:pointer;
+}
+.teacher-tools-btn:hover{background:#e3ebf6;}
+
 @media(max-width:640px){
   .teacher-grid{grid-template-columns:1fr;}
 }
@@ -1397,6 +1405,11 @@ font-family:"DM Sans",sans-serif;
 
   <div class="teacher-box">
     <h4>Registered Student Access</h4>
+    <div class="teacher-tools-row">
+      <button class="teacher-tools-btn" type="button" onclick="teacherExportStudentAccess()">⬇ Export Students</button>
+      <button class="teacher-tools-btn" type="button" onclick="teacherPickImportStudentAccess()">⬆ Import Students</button>
+    </div>
+    <div class="teacher-msg" id="TA_BACKUP_MSG"></div>
     <div class="teacher-list" id="TEACHER_ACCESS_LIST"></div>
   </div>
 </div>
@@ -1995,6 +2008,7 @@ font-family:"DM Sans",sans-serif;
 
 <input type="file" id="FC_BACKUP_INPUT" accept=".json,application/json" style="display:none" onchange="fcImportBackup(this)"/>
 <input type="file" id="SB_BACKUP_INPUT" accept=".json,application/json" style="display:none" onchange="sbImportBackup(this)"/>
+<input type="file" id="TA_IMPORT_FILE" accept=".json,application/json" style="display:none" onchange="teacherImportStudentAccess(this)"/>
 
 <script>
 /* NAV */
@@ -2162,6 +2176,68 @@ function teacherDeleteStudentAccess(login){
   studentAccessList = studentAccessList.filter(s => gateNormalize(s.login) !== gateNormalize(login));
   gateSaveStudents();
   gateRenderTeacherList();
+}
+
+function teacherDownloadJSON(filename, obj){
+  const blob = new Blob([JSON.stringify(obj, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+function teacherSetBackupMsg(msg){
+  const el = document.getElementById("TA_BACKUP_MSG");
+  if(el) el.textContent = msg || "";
+}
+function teacherExportStudentAccess(){
+  gateLoadStudents();
+  const payload = {
+    app: "CES Platform",
+    type: "student_access",
+    exportedAt: new Date().toISOString(),
+    students: studentAccessList
+  };
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  teacherDownloadJSON(`ces_students_backup_${stamp}.json`, payload);
+  teacherSetBackupMsg("Student records exported.");
+}
+function teacherPickImportStudentAccess(){
+  const inp = document.getElementById("TA_IMPORT_FILE");
+  if(!inp) return;
+  inp.value = "";
+  inp.click();
+}
+async function teacherImportStudentAccess(input){
+  const file = input && input.files && input.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const raw = JSON.parse(text);
+    let students = null;
+    if(Array.isArray(raw)) students = raw;
+    else if(raw && Array.isArray(raw.students)) students = raw.students;
+    else if(raw && raw.data && Array.isArray(raw.data.students)) students = raw.data.students;
+
+    if(!Array.isArray(students)) throw new Error("Invalid file");
+
+    studentAccessList = students.map(s => ({
+      name: String((s && s.name) || "").trim(),
+      login: gateNormalize((s && s.login) || ""),
+      password: String((s && s.password) || "").trim()
+    })).filter(s => s.login && s.password);
+
+    gateSaveStudents();
+    gateRenderTeacherList();
+    teacherSetBackupMsg("Student records imported successfully.");
+  }catch(e){
+    teacherSetBackupMsg("Could not import this student backup.");
+  }finally{
+    if(input) input.value = "";
+  }
 }
 function gateRenderTeacherList(){
   gateLoadStudents();
