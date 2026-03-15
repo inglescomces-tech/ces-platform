@@ -1970,6 +1970,7 @@ function gateLoadStudents(){
 }
 function gateSaveStudents(){
   localStorage.setItem(STUDENT_ACCESS_STORAGE, JSON.stringify(studentAccessList));
+  try{ cesTrySyncStudents(); }catch(e){}
 }
 function gateLoadSession(){
   try{
@@ -5021,6 +5022,49 @@ setTimeout(async ()=>{
     await window.cesLoadSoundSceneNow();
   }catch(e){}
 }, 1800);
+
+/* === CES STUDENT SYNC LAYER (safe) === */
+async function cesTrySyncStudents(){
+  try{
+    if(typeof firebase === "undefined") return;
+    if(!window.studentAccessList) return;
+    const db = firebase.firestore();
+    await db.collection("students").doc("shared").set({
+      items: window.studentAccessList
+    });
+  }catch(e){
+    console.log("Firebase sync skipped:", e);
+  }
+}
+
+async function cesTryLoadStudentsFromFirebase(){
+  try{
+    if(typeof firebase === "undefined") return false;
+    const db = firebase.firestore();
+    const doc = await db.collection("students").doc("shared").get();
+    if(doc.exists){
+      const data = doc.data();
+      if(data && Array.isArray(data.items) && data.items.length){
+        window.studentAccessList = data.items;
+        try{
+          localStorage.setItem("ces_student_access_v1", JSON.stringify(data.items));
+        }catch(e){}
+        if(typeof gateRenderTeacherList === "function") gateRenderTeacherList();
+        return true;
+      }
+    }
+  }catch(e){
+    console.log("Firebase load skipped:", e);
+  }
+  return false;
+}
+/* === END SYNC LAYER === */
+
+setTimeout(async ()=>{
+  try{
+    await cesTryLoadStudentsFromFirebase();
+  }catch(e){}
+},1500);
 </script>
 
 
