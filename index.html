@@ -1970,7 +1970,6 @@ function gateLoadStudents(){
 }
 function gateSaveStudents(){
   localStorage.setItem(STUDENT_ACCESS_STORAGE, JSON.stringify(studentAccessList));
-  try{ cesTrySyncStudents(); }catch(e){}
 }
 function gateLoadSession(){
   try{
@@ -5022,52 +5021,51 @@ setTimeout(async ()=>{
     await window.cesLoadSoundSceneNow();
   }catch(e){}
 }, 1800);
-
-/* === CES STUDENT SYNC LAYER (safe) === */
-async function cesTrySyncStudents(){
-  try{
-    if(typeof firebase === "undefined") return;
-    if(!window.studentAccessList) return;
-    const db = firebase.firestore();
-    await db.collection("students").doc("shared").set({
-      items: window.studentAccessList
-    });
-  }catch(e){
-    console.log("Firebase sync skipped:", e);
-  }
-}
-
-async function cesTryLoadStudentsFromFirebase(){
-  try{
-    if(typeof firebase === "undefined") return false;
-    const db = firebase.firestore();
-    const doc = await db.collection("students").doc("shared").get();
-    if(doc.exists){
-      const data = doc.data();
-      if(data && Array.isArray(data.items) && data.items.length){
-        window.studentAccessList = data.items;
-        try{
-          localStorage.setItem("ces_student_access_v1", JSON.stringify(data.items));
-        }catch(e){}
-        if(typeof gateRenderTeacherList === "function") gateRenderTeacherList();
-        return true;
-      }
-    }
-  }catch(e){
-    console.log("Firebase load skipped:", e);
-  }
-  return false;
-}
-/* === END SYNC LAYER === */
-
-setTimeout(async ()=>{
-  try{
-    await cesTryLoadStudentsFromFirebase();
-  }catch(e){}
-},1500);
 </script>
 
 
-<div class="version-badge" id="CES_VERSION_BADGE"><strong>CES Version</strong><br>v2026.03.14-students-local-only-1<span class="v-sub">students local stable first</span></div>
+<div class="version-badge" id="CES_VERSION_BADGE"><strong>CES Version</strong><br>v2026-LABSYNC.03.14-students-local-only-1<span class="v-sub">students local stable first</span></div>
+
+<script>
+/* ===== CES LAB SYNC (SAFE — DOES NOT TOUCH LOCAL SAVE LOGIC) ===== */
+
+/* push local students to Firebase every few seconds */
+async function cesLabPush(){
+  try{
+    if(!window.cesFirebase || !window.cesFirebase.enabled) return;
+    const data = localStorage.getItem("ces_student_access_v1");
+    if(!data) return;
+    const items = JSON.parse(data);
+    if(!Array.isArray(items) || !items.length) return;
+
+    const fb = window.cesFirebase;
+    await fb.setDoc(fb.doc(fb.db,"students","shared"),{items:items,updatedAt:Date.now()});
+  }catch(e){}
+}
+
+/* pull students from Firebase if local empty */
+async function cesLabPull(){
+  try{
+    const local = localStorage.getItem("ces_student_access_v1");
+    if(local) return;
+
+    if(!window.cesFirebase || !window.cesFirebase.enabled) return;
+    const fb = window.cesFirebase;
+    const snap = await fb.getDoc(fb.doc(fb.db,"students","shared"));
+    if(!snap.exists()) return;
+
+    const data = snap.data();
+    if(!data || !Array.isArray(data.items) || !data.items.length) return;
+
+    localStorage.setItem("ces_student_access_v1",JSON.stringify(data.items));
+  }catch(e){}
+}
+
+/* start sync */
+setTimeout(cesLabPull,1500);
+setInterval(cesLabPush,4000);
+
+</script>
+
 </body>
 </html>
