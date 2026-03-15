@@ -2065,7 +2065,7 @@ async function gateSubmitTeacher(){
   teacherAccessOpen = true;
   gateSession = { role:"teacher", login:"", name:"" };
   gateSaveSession();
-  if(window.cesLoadStudentsNow) await window.cesLoadStudentsNow();
+  gateLoadStudents();
   gateRenderTeacherList();
   document.getElementById("TEACHER_ACCESS_PANEL").classList.add("open");
   gateUpdateUI();
@@ -2085,19 +2085,26 @@ async function teacherSaveStudentAccess(){
     if(msg) msg.textContent = "Please fill in login and password.";
     return;
   }
+
   const idx = studentAccessList.findIndex(s => gateNormalize(s.login) === login);
   const item = { name, login, password };
   if(idx >= 0) studentAccessList[idx] = item;
   else studentAccessList.unshift(item);
 
-  gateSaveStudents();
-  if(window.cesSyncStudentsNow) await window.cesSyncStudentsNow();
+  try{
+    localStorage.setItem(STUDENT_ACCESS_STORAGE, JSON.stringify(studentAccessList));
+  }catch(e){
+    if(msg) msg.textContent = "Could not save on this device.";
+    return;
+  }
+
+  gateLoadStudents();
   gateRenderTeacherList();
 
   document.getElementById("TA_NAME").value = "";
   document.getElementById("TA_LOGIN").value = "";
   document.getElementById("TA_PASSWORD").value = "";
-  if(msg) msg.textContent = idx >= 0 ? "Student access updated." : "Student access created.";
+  if(msg) msg.textContent = idx >= 0 ? "Student access updated on this device." : "Student access created on this device.";
 }
 function teacherEditStudentAccess(login){
   gateLoadStudents();
@@ -2111,8 +2118,10 @@ function teacherEditStudentAccess(login){
 async function teacherDeleteStudentAccess(login){
   gateLoadStudents();
   studentAccessList = studentAccessList.filter(s => gateNormalize(s.login) !== gateNormalize(login));
-  gateSaveStudents();
-  if(window.cesSyncStudentsNow) await window.cesSyncStudentsNow();
+  try{
+    localStorage.setItem(STUDENT_ACCESS_STORAGE, JSON.stringify(studentAccessList));
+  }catch(e){}
+  gateLoadStudents();
   gateRenderTeacherList();
 }
 function gateRenderTeacherList(){
@@ -2150,7 +2159,6 @@ function gateCloseStudent(){
 }
 async function gateSubmitStudent(){
   gateLoadStudents();
-  if(window.cesLoadStudentsNow) await window.cesLoadStudentsNow();
   const login = gateNormalize(document.getElementById("STUDENT_GATE_LOGIN")?.value);
   const password = (document.getElementById("STUDENT_GATE_PASS")?.value || "").trim();
   const err = document.getElementById("STUDENT_GATE_ERR");
@@ -4961,35 +4969,12 @@ async function cesGetSharedDoc(collectionName, docId){
   }
 }
 window.cesSyncStudentsNow = async function(){
-  const items = Array.isArray(window.studentAccessList) ? window.studentAccessList : [];
-  return await cesSetSharedDoc("students", "shared", { items, updatedAt: Date.now() });
+  return true;
 };
 window.cesLoadStudentsNow = async function(){
-  const data = await cesGetSharedDoc("students", "shared");
-  let localItems = [];
-  try{
-    const raw = localStorage.getItem("ces_student_access_v1");
-    if(raw){
-      const parsed = JSON.parse(raw);
-      if(Array.isArray(parsed)) localItems = parsed;
-    }
-  }catch(e){}
-
-  if(data && Array.isArray(data.items) && data.items.length){
-    window.studentAccessList = data.items;
-    try{ localStorage.setItem("ces_student_access_v1", JSON.stringify(data.items)); }catch(e){}
-    if(typeof window.gateRenderTeacherList === "function") window.gateRenderTeacherList();
-    return true;
-  }
-
-  if(localItems.length){
-    window.studentAccessList = localItems;
-    if(typeof window.gateRenderTeacherList === "function") window.gateRenderTeacherList();
-    try{ await window.cesSyncStudentsNow(); }catch(e){}
-    return true;
-  }
-
-  return false;
+  gateLoadStudents();
+  if(typeof window.gateRenderTeacherList === "function") window.gateRenderTeacherList();
+  return true;
 };
 window.cesSyncFlashcardsNow = async function(){
   const books = Array.isArray(window.BOOKS) ? window.BOOKS : [];
@@ -5030,7 +5015,8 @@ window.cesLoadSoundSceneNow = async function(){
 };
 setTimeout(async ()=>{
   try{
-    await window.cesLoadStudentsNow();
+    gateLoadStudents();
+    if(typeof gateRenderTeacherList === "function") gateRenderTeacherList();
     await window.cesLoadFlashcardsNow();
     await window.cesLoadSoundSceneNow();
   }catch(e){}
@@ -5038,6 +5024,6 @@ setTimeout(async ()=>{
 </script>
 
 
-<div class="version-badge" id="CES_VERSION_BADGE"><strong>CES Version</strong><br>v2026.03.14-students-local-safe-1<span class="v-sub">local students kept + sync only when safe</span></div>
+<div class="version-badge" id="CES_VERSION_BADGE"><strong>CES Version</strong><br>v2026.03.14-students-local-only-1<span class="v-sub">students local stable first</span></div>
 </body>
 </html>
