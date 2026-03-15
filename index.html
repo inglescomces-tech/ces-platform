@@ -4966,12 +4966,29 @@ window.cesSyncStudentsNow = async function(){
 };
 window.cesLoadStudentsNow = async function(){
   const data = await cesGetSharedDoc("students", "shared");
-  if(data && Array.isArray(data.items)){
+  let localItems = [];
+  try{
+    const raw = localStorage.getItem("ces_student_access_v1");
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(Array.isArray(parsed)) localItems = parsed;
+    }
+  }catch(e){}
+
+  if(data && Array.isArray(data.items) && data.items.length){
     window.studentAccessList = data.items;
     try{ localStorage.setItem("ces_student_access_v1", JSON.stringify(data.items)); }catch(e){}
     if(typeof window.gateRenderTeacherList === "function") window.gateRenderTeacherList();
     return true;
   }
+
+  if(localItems.length){
+    window.studentAccessList = localItems;
+    if(typeof window.gateRenderTeacherList === "function") window.gateRenderTeacherList();
+    try{ await window.cesSyncStudentsNow(); }catch(e){}
+    return true;
+  }
+
   return false;
 };
 window.cesSyncFlashcardsNow = async function(){
@@ -5021,6 +5038,6 @@ setTimeout(async ()=>{
 </script>
 
 
-<div class="version-badge" id="CES_VERSION_BADGE"><strong>CES Version</strong><br>v2026.03.14-firebase-fix-2<span class="v-sub">teacher unlock + firebase students fix</span></div>
+<div class="version-badge" id="CES_VERSION_BADGE"><strong>CES Version</strong><br>v2026.03.14-students-local-safe-1<span class="v-sub">local students kept + sync only when safe</span></div>
 </body>
 </html>
