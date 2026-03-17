@@ -3494,35 +3494,42 @@ async function saveCards(){
 }
 
 async function loadCards(){
-  $("CW").textContent = ""; $("CP").textContent = "Loading…";
-  // 1. Firebase — primary source, works on all devices
+  $("CW").textContent = ""; $("CP").textContent = "Loading...";
   try{
     await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
-    const cardsData = await cesGetSharedDoc("flashcards", "cards");
-    const booksData = await cesGetSharedDoc("flashcards", "books");
-    if(cardsData && Array.isArray(cardsData.items) && cardsData.items.length > 0){
-      allCards = cardsData.items;
-      window.allCards = allCards;
-      window.sbCards  = allCards;
-      if(booksData && Array.isArray(booksData.items) && booksData.items.length > 0){
-        BOOKS = booksData.items;
-        window.BOOKS = BOOKS;
-      }
-      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(allCards)); }catch(e){}
-      showSyncStatus("✓ Cards loaded", "var(--green)");
-      console.log("CES: Loaded", allCards.length, "cards from Firebase"); if(window.cesDebug) window.cesDebug("✅ loadCards: "+allCards.length+" cards loaded");
-      return;
+    if(!window._fcWatchActive){
+      window._fcWatchActive = true;
+      cesWatchSharedDoc("flashcards", "cards", function(data){
+        if(!data||!Array.isArray(data.items)||!data.items.length) return;
+        var sig=data.items.length+"_"+(data.updatedAt||"");
+        if(window._lastCards===sig) return;
+        window._lastCards=sig;
+        allCards=data.items; window.allCards=allCards; window.sbCards=allCards;
+        showSyncStatus("Cards loaded","var(--green)");
+        if(typeof buildBookGrid==="function") buildBookGrid();
+        if(typeof buildLessonGrid==="function") buildLessonGrid();
+        if(typeof updateRangeSelects==="function") updateRangeSelects();
+        if(typeof buildAllBookSelects==="function") buildAllBookSelects();
+        if(typeof applyDeck==="function") applyDeck();
+        if(typeof buildList==="function") buildList();
+        if(typeof sbmBuildBooks==="function") sbmBuildBooks();
+        if(window.cesDebug) window.cesDebug("Cards: "+allCards.length);
+      });
+      cesWatchSharedDoc("flashcards", "books", function(data){
+        if(!data||!Array.isArray(data.items)||!data.items.length) return;
+        var sig=JSON.stringify(data.items);
+        if(window._lastBooks===sig) return;
+        window._lastBooks=sig;
+        BOOKS=data.items; window.BOOKS=BOOKS;
+        if(typeof buildBookGrid==="function") buildBookGrid();
+        if(typeof buildAllBookSelects==="function") buildAllBookSelects();
+        if(typeof updateRangeSelects==="function") updateRangeSelects();
+        if(window.cesDebug) window.cesDebug("Books: "+BOOKS.join(", "));
+      });
     }
-  }catch(e){}
-  // 2. localStorage fallback
-  try{
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if(saved){ const p=JSON.parse(saved); if(Array.isArray(p)&&p.length>0){ allCards=p; window.sbCards=allCards; showSyncStatus("Cards loaded (offline)","var(--mid)"); return; } }
-  }catch(e){}
-  // 3. Last resort: default cards so app isn't empty
-  allCards = DEF.map(o=>({...o}));
-  window.sbCards = allCards;
-  showSyncStatus("Using default cards","var(--mid)");
+  }catch(e){
+    if(!allCards.length){ allCards=DEF.map(o=>({...o})); window.allCards=allCards; window.sbCards=allCards; }
+  }
 }
 
 /* ═══════════════════════════════════════════
