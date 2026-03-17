@@ -2439,21 +2439,23 @@ async function gateSubmitStudent(){
   const password = (document.getElementById("STUDENT_GATE_PASS")?.value || "").trim();
   const err = document.getElementById("STUDENT_GATE_ERR");
   if(err) err.textContent = "Checking...";
-  try{ await window.cesLoadStudentsNow(); }catch(e){ gateLoadStudents(); }
-  const found = studentAccessList.find(s => gateNormalize(s.login) === login && String(s.password||"") === password);
-  if(!found){
-    if(err) err.textContent = "Invalid login or password.";
-    return;
-  }
-  gateSession = { role:"student", login: found.login || "", name: found.name || "" };
-  gateSaveSession();
-  gateCloseStudent();
-  gateUpdateUI();
-  if(gatePendingPage){
-    const page = gatePendingPage;
-    gatePendingPage = null;
-    openPage(page);
-  }
+  (async()=>{
+    try{ await window.cesLoadStudentsNow(); }catch(e){ gateLoadStudents(); }
+    const found = studentAccessList.find(s => gateNormalize(s.login) === login && String(s.password||"") === password);
+    if(!found){
+      if(err) err.textContent = "Invalid login or password.";
+      return;
+    }
+    gateSession = { role:"student", login: found.login || "", name: found.name || "" };
+    gateSaveSession();
+    gateCloseStudent();
+    gateUpdateUI();
+    if(gatePendingPage){
+      const page = gatePendingPage;
+      gatePendingPage = null;
+      openPage(page);
+    }
+  })();
 }
 function gateLogout(){
   gatePendingPage = null;
