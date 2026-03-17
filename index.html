@@ -5208,5 +5208,14 @@ setTimeout(async ()=>{
   <div id="ces-debug-content">Loading...</div>
 </div>
 
+
+<script>
+/* Register Service Worker for cache control */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/ces-platform/sw.js')
+    .then(()=>console.log('CES: Service Worker registered'))
+    .catch(e=>console.log('CES: SW failed (ok if local)', e.message));
+}
+</script>
 </body>
 </html>
