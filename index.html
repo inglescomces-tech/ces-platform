@@ -2500,6 +2500,20 @@ function openPage(id){
   document.getElementById(id).classList.add('active');
   gateRefreshStudentLabels();
   window.scrollTo({top:0,behavior:'smooth'});
+  // Re-render with latest Firebase data when opening Flashcards
+  if(id === 'PAGE_FC'){
+    if(window.BOOKS && window.BOOKS.length && typeof buildBookGrid==='function'){
+      buildBookGrid();
+      buildLessonGrid();
+      updateRangeSelects();
+      buildAllBookSelects();
+      applyDeck();
+    }
+  }
+  // Re-render SB when opening Sentence Builder
+  if(id === 'PAGE_SB'){
+    if(typeof sbmBuildBooks==='function') sbmBuildBooks();
+  }
 }
 function goHome(){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
