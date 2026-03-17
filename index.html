@@ -2280,7 +2280,7 @@ const DEF = [
   {w:"FRIEND", p:"frênd", t:"Amigo(a)",        c:"a person you know and like",   book:"A1", lesson:1, type:"noun"},
 ];
 
-let allCards = DEF.map(o=>({...o}));  // master list
+let allCards = [];  // master list — loaded from Firebase on startup
 let deck = [];                         // current filtered deck
 let cur = 0, flipped = false, unlocked = false;
 const seen = new Set();
@@ -3234,6 +3234,9 @@ async function loadCards(){
     const saved = localStorage.getItem(STORAGE_KEY);
     if(saved){ const p=JSON.parse(saved); if(Array.isArray(p)&&p.length>0){ allCards=p; window.sbCards=allCards; showSyncStatus("Cards loaded (offline)","var(--mid)"); return; } }
   }catch(e){}
+  // 3. Last resort: default cards so app isn't empty
+  allCards = DEF.map(o=>({...o}));
+  window.sbCards = allCards;
   showSyncStatus("Using default cards","var(--mid)");
 }
 
@@ -4974,24 +4977,26 @@ function cesFbReady(){
   return !!(window.cesFirebase && window.cesFirebase.enabled && window.cesFirebase.db);
 }
 async function cesSetSharedDoc(collectionName, docId, data){
-  if(!cesFbReady()) return false;
+  if(!cesFbReady()){ console.warn("CES: Firebase not ready for SET", collectionName, docId); return false; }
   try{
     const fb = window.cesFirebase;
     await fb.setDoc(fb.doc(fb.db, collectionName, docId), data);
+    console.log("CES: Firebase SET ok", collectionName, docId);
     return true;
   }catch(err){
-    console.error("Firebase set failed:", collectionName, docId, err);
+    console.error("CES: Firebase SET FAILED", collectionName, docId, err.code, err.message);
     return false;
   }
 }
 async function cesGetSharedDoc(collectionName, docId){
-  if(!cesFbReady()) return null;
+  if(!cesFbReady()){ console.warn("CES: Firebase not ready for GET", collectionName, docId); return null; }
   try{
     const fb = window.cesFirebase;
     const snap = await fb.getDoc(fb.doc(fb.db, collectionName, docId));
+    console.log("CES: Firebase GET", collectionName, docId, snap.exists()?"found":"empty");
     return snap.exists() ? snap.data() : null;
   }catch(err){
-    console.error("Firebase get failed:", collectionName, docId, err);
+    console.error("CES: Firebase GET FAILED", collectionName, docId, err.code, err.message);
     return null;
   }
 }
@@ -5030,14 +5035,28 @@ window.cesLoadFlashcardsNow = async function(){
   await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
   const booksData = await cesGetSharedDoc("flashcards", "books");
   const cardsData = await cesGetSharedDoc("flashcards", "cards");
-  if(booksData && Array.isArray(booksData.items)){
+  if(booksData && Array.isArray(booksData.items) && booksData.items.length > 0){
     window.BOOKS = booksData.items;
-    try{ localStorage.setItem("ces_books_v2", JSON.stringify(window.BOOKS)); }catch(e){}
+    if(typeof BOOKS !== "undefined") BOOKS.splice(0, BOOKS.length, ...booksData.items);
+    try{ localStorage.setItem("ces_books_v2", JSON.stringify(booksData.items)); }catch(e){}
   }
-  if(cardsData && Array.isArray(cardsData.items)){
+  if(cardsData && Array.isArray(cardsData.items) && cardsData.items.length > 0){
+    // Update the LOCAL allCards variable used by FC app
+    if(typeof allCards !== "undefined") allCards.splice(0, allCards.length, ...cardsData.items);
     window.allCards = cardsData.items;
-    window.sbCards = cardsData.items;
+    window.sbCards  = cardsData.items;
     try{ localStorage.setItem("ces_flashcards_v2", JSON.stringify(cardsData.items)); }catch(e){}
+    // Re-render FC immediately
+    if(typeof buildBookGrid    === "function") buildBookGrid();
+    if(typeof buildLessonGrid  === "function") buildLessonGrid();
+    if(typeof updateRangeSelects === "function") updateRangeSelects();
+    if(typeof buildAllBookSelects === "function") buildAllBookSelects();
+    if(typeof applyDeck        === "function") applyDeck();
+    if(typeof buildList        === "function") buildList();
+    // Re-render SB
+    if(typeof sbmBuildBooks    === "function") sbmBuildBooks();
+    if(typeof sbmUpdateLessons === "function") sbmUpdateLessons();
+    console.log("CES: FC re-rendered with", cardsData.items.length, "cards from Firebase");
   }
 };
 window.cesSyncSoundSceneNow = async function(){
@@ -5062,15 +5081,7 @@ setTimeout(async ()=>{
     // Load students from Firebase
     await window.cesLoadStudentsNow();
     // Load flashcards from Firebase and re-render
-    await window.cesLoadFlashcardsNow();
-    // Re-render FC if it was already initialized
-    if(typeof buildBookGrid === "function") buildBookGrid();
-    if(typeof buildLessonGrid === "function") buildLessonGrid();
-    if(typeof updateRangeSelects === "function") updateRangeSelects();
-    if(typeof buildAllBookSelects === "function") buildAllBookSelects();
-    if(typeof applyDeck === "function") applyDeck();
-    // Re-render SB
-    if(typeof sbmBuildBooks === "function") sbmBuildBooks();
+    await window.cesLoadFlashcardsNow(); // re-render is inside cesLoadFlashcardsNow
     // Load Sound & Scene
     await window.cesLoadSoundSceneNow();
     if(typeof ssmBuildBooks === "function") ssmBuildBooks();
