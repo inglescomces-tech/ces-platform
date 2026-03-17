@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <title>CES – English Activities</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
@@ -4977,7 +4980,8 @@ import {
   getFirestore,
   doc,
   getDoc,
-  setDoc
+  setDoc,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -4998,7 +5002,8 @@ window.cesFirebase = {
   db,
   doc,
   getDoc,
-  setDoc
+  setDoc,
+  onSnapshot
 };
 if(window._cesFirebaseResolve) window._cesFirebaseResolve();
 console.log("CES Firebase connected."); if(window.cesDebug) window.cesDebug("🔥 Firebase connected!");
@@ -5021,6 +5026,21 @@ async function cesSetSharedDoc(collectionName, docId, data){
     return false;
   }
 }
+function cesWatchSharedDoc(collectionName, docId, callback){
+  if(!cesFbReady()){ console.warn("CES: Firebase not ready for WATCH", collectionName); return null; }
+  const fb = window.cesFirebase;
+  const ref = fb.doc(fb.db, collectionName, docId);
+  return fb.onSnapshot(ref, (snap) => {
+    if(snap.exists()){
+      console.log("CES: LIVE UPDATE", collectionName, docId);
+      if(window.cesDebug) window.cesDebug("🔴 LIVE: "+collectionName+"/"+docId+" updated!");
+      callback(snap.data());
+    }
+  }, (err) => {
+    console.error("CES: Watch failed", collectionName, err.code);
+  });
+}
+
 async function cesGetSharedDoc(collectionName, docId){
   if(!cesFbReady()){ console.warn("CES: Firebase not ready for GET", collectionName, docId); if(window.cesDebug) window.cesDebug("⚠️ Firebase NOT READY for GET "+collectionName); return null; }
   try{
@@ -5115,6 +5135,42 @@ setTimeout(async ()=>{
     await window.cesLoadStudentsNow();
     // Load flashcards from Firebase and re-render
     await window.cesLoadFlashcardsNow(); // re-render is inside cesLoadFlashcardsNow
+
+    // Set up REALTIME listeners — auto-update when teacher saves from any device
+    await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
+    cesWatchSharedDoc("flashcards", "cards", function(data){
+      if(data && Array.isArray(data.items) && data.items.length > 0){
+        if(typeof allCards !== "undefined") allCards.splice(0, allCards.length, ...data.items);
+        window.allCards = data.items; window.sbCards = data.items;
+        try{ localStorage.setItem("ces_flashcards_v2", JSON.stringify(data.items)); }catch(e){}
+        if(typeof buildBookGrid    === "function") buildBookGrid();
+        if(typeof buildLessonGrid  === "function") buildLessonGrid();
+        if(typeof updateRangeSelects === "function") updateRangeSelects();
+        if(typeof buildAllBookSelects === "function") buildAllBookSelects();
+        if(typeof applyDeck        === "function") applyDeck();
+        if(typeof buildList        === "function") buildList();
+        if(typeof sbmBuildBooks    === "function") sbmBuildBooks();
+        console.log("CES: Live flashcards updated", data.items.length, "cards");
+        if(window.cesDebug) window.cesDebug("🔴 Live update: "+data.items.length+" cards!");
+      }
+    });
+    cesWatchSharedDoc("flashcards", "books", function(data){
+      if(data && Array.isArray(data.items) && data.items.length > 0){
+        if(typeof BOOKS !== "undefined") BOOKS.splice(0, BOOKS.length, ...data.items);
+        window.BOOKS = data.items;
+        try{ localStorage.setItem("ces_books_v2", JSON.stringify(data.items)); }catch(e){}
+        if(typeof buildBookGrid === "function") buildBookGrid();
+        if(typeof buildAllBookSelects === "function") buildAllBookSelects();
+      }
+    });
+    cesWatchSharedDoc("students", "shared", function(data){
+      if(data && Array.isArray(data.items)){
+        studentAccessList = data.items;
+        try{ localStorage.setItem(STUDENT_ACCESS_STORAGE, JSON.stringify(data.items)); }catch(e){}
+        if(typeof gateRenderTeacherList === "function") gateRenderTeacherList();
+        if(window.cesDebug) window.cesDebug("🔴 Live update: students!");
+      }
+    });
     // Load Sound & Scene
     await window.cesLoadSoundSceneNow();
     if(typeof ssmBuildBooks === "function") ssmBuildBooks();
