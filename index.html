@@ -2360,12 +2360,10 @@ function loadBooks(){
 }
 
 function buildBookGrid(){
-  // Always use window.BOOKS if available (set by Firebase live updates)
-  if(window.BOOKS && window.BOOKS.length > 0 && window.BOOKS !== BOOKS){
-    BOOKS.splice(0, BOOKS.length, ...window.BOOKS);
-  }
+  // Always render from window.BOOKS (Firebase source of truth)
+  const booksToRender = (window.BOOKS && window.BOOKS.length > 0) ? window.BOOKS : BOOKS;
   const g = $("BOOK_GRID"); g.innerHTML="";
-  BOOKS.forEach(b=>{
+  booksToRender.forEach(b=>{
     const wrap=document.createElement("div");
     wrap.className="book-pill-wrap";
 
@@ -2667,8 +2665,8 @@ function summaryText(){
 }
 
 function applyDeck(){
-  // Always sync with window.allCards (set by Firebase live updates)
-  if(window.allCards && window.allCards.length > 0 && window.allCards !== allCards){
+  // Always use window.allCards (Firebase source of truth)
+  if(window.allCards && window.allCards.length > 0){
     allCards.splice(0, allCards.length, ...window.allCards);
   }
   deck = allCards.filter(c=>matchesFilter(c));
@@ -5228,5 +5226,22 @@ if('serviceWorker' in navigator){
     .catch(e=>console.log('CES: SW failed (ok if local)', e.message));
 }
 </script>
+
+/* CES — Safety sync: re-render if Firebase data differs from screen */
+setInterval(function(){
+  try{
+    const grid = document.getElementById('BOOK_GRID');
+    if(!grid) return;
+    const shownBooks = Array.from(grid.querySelectorAll('.book-pill')).map(b=>b.textContent.replace('×','').trim());
+    const firebaseBooks = window.BOOKS || [];
+    const missing = firebaseBooks.filter(b => b !== 'All' && !shownBooks.includes(b));
+    if(missing.length > 0){
+      console.log('CES: Sync fix — missing books:', missing);
+      if(window.cesDebug) window.cesDebug('🔄 Sync: adding '+missing.join(','));
+      if(typeof buildBookGrid === 'function') buildBookGrid();
+      if(typeof updateRangeSelects === 'function') updateRangeSelects();
+    }
+  }catch(e){}
+}, 3000);
 </body>
 </html>
