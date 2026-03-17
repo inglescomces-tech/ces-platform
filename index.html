@@ -1150,7 +1150,7 @@ function updateHomeUI() {
   }
   var nameEl = document.getElementById('HOME_SESSION_NAME');
   if (session.role === 'student') {
-    if (nameEl) nameEl.textContent = (session.name || session.login) + '!';
+    if (nameEl) nameEl.textContent = session.name || session.login;
     var lbl = document.getElementById('HOME_WELCOME_LBL');
     if (lbl) lbl.textContent = 'Hey,';
     sess.classList.add('show');
