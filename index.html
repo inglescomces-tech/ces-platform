@@ -2435,26 +2435,19 @@ function gateCloseStudent(){
   document.getElementById("STUDENT_GATE_OV").classList.remove("open");
 }
 async function gateSubmitStudent(){
-  const login = gateNormalize(document.getElementById("STUDENT_GATE_LOGIN")?.value);
-  const password = (document.getElementById("STUDENT_GATE_PASS")?.value || "").trim();
-  const err = document.getElementById("STUDENT_GATE_ERR");
-  if(err) err.textContent = "Checking...";
-  (async()=>{
+  (async function(){
+    var login = gateNormalize(document.getElementById("STUDENT_GATE_LOGIN")?.value);
+    var password = (document.getElementById("STUDENT_GATE_PASS")?.value || "").trim();
+    var err = document.getElementById("STUDENT_GATE_ERR");
+    if(err) err.textContent = "Checking...";
     try{ await window.cesLoadStudentsNow(); }catch(e){ gateLoadStudents(); }
-    const found = studentAccessList.find(s => gateNormalize(s.login) === login && String(s.password||"") === password);
-    if(!found){
-      if(err) err.textContent = "Invalid login or password.";
-      return;
-    }
-    gateSession = { role:"student", login: found.login || "", name: found.name || "" };
+    var found = studentAccessList.find(function(s){ return gateNormalize(s.login)===login && String(s.password||"")===password; });
+    if(!found){ if(err) err.textContent = "Invalid login or password."; return; }
+    gateSession = { role:"student", login: found.login||"", name: found.name||"" };
     gateSaveSession();
     gateCloseStudent();
     gateUpdateUI();
-    if(gatePendingPage){
-      const page = gatePendingPage;
-      gatePendingPage = null;
-      openPage(page);
-    }
+    if(gatePendingPage){ var page=gatePendingPage; gatePendingPage=null; openPage(page); }
   })();
 }
 function gateLogout(){
@@ -2578,11 +2571,7 @@ function saveBooks(){
   try{ window.cesSyncFlashcardsNow && window.cesSyncFlashcardsNow(); }catch(e){}
 }
 function loadBooks(){
-  // Try localStorage (will be updated from Firebase on startup)
-  try{
-    const s=localStorage.getItem("ces_books_v2");
-    if(s){ const p=JSON.parse(s); if(Array.isArray(p)&&p.length) BOOKS=p; }
-  }catch(e){}
+  // Books come from Firebase via loadCards() - do not cache
 }
 
 function buildBookGrid(){
