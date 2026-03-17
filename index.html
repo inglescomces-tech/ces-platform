@@ -1270,6 +1270,12 @@ font-family:"DM Sans",sans-serif;
 }
 </style>
 
+<script>
+/* CES — Firebase readiness promise */
+window.cesFirebaseReady = new Promise(function(resolve){
+  window._cesFirebaseResolve = resolve;
+});
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -1304,12 +1310,10 @@ window.cesFirebase = {
 if(window._cesFirebaseResolve) window._cesFirebaseResolve();
 console.log("CES Firebase connected."); if(window.cesDebug) window.cesDebug("🔥 Firebase connected!");
 </script>
-<script>
-/* CES — Firebase readiness promise */
-window.cesFirebaseReady = new Promise(function(resolve){
-  window._cesFirebaseResolve = resolve;
-});
-</script>
+
+
+
+
 <script>
 /* CES FIREBASE LIVE SYNC */
 function cesFbReady(){
