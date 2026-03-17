@@ -2360,6 +2360,10 @@ function loadBooks(){
 }
 
 function buildBookGrid(){
+  // Always use window.BOOKS if available (set by Firebase live updates)
+  if(window.BOOKS && window.BOOKS.length > 0 && window.BOOKS !== BOOKS){
+    BOOKS.splice(0, BOOKS.length, ...window.BOOKS);
+  }
   const g = $("BOOK_GRID"); g.innerHTML="";
   BOOKS.forEach(b=>{
     const wrap=document.createElement("div");
@@ -2663,6 +2667,10 @@ function summaryText(){
 }
 
 function applyDeck(){
+  // Always sync with window.allCards (set by Firebase live updates)
+  if(window.allCards && window.allCards.length > 0 && window.allCards !== allCards){
+    allCards.splice(0, allCards.length, ...window.allCards);
+  }
   deck = allCards.filter(c=>matchesFilter(c));
   if(!deck.length){
     fcSetDefaultState("No cards found for this selection. Choose another option in the menu.");
@@ -3189,6 +3197,9 @@ $("EDITSAVE").onclick=()=>{
    BOOK SELECTS (populate everywhere)
 ═══════════════════════════════════════════ */
 function buildAllBookSelects(){
+  if(window.BOOKS && window.BOOKS.length > 0 && window.BOOKS !== BOOKS){
+    BOOKS.splice(0, BOOKS.length, ...window.BOOKS);
+  }
   ["ADD_BOOK","E_BOOK","LIST_FILTER_BOOK"].forEach(id=>{
     const el=$(id); if(!el) return;
     const cur=el.value;
