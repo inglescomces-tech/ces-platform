@@ -2307,6 +2307,7 @@ function saveBooks(){
   try{ window.cesSyncFlashcardsNow && window.cesSyncFlashcardsNow(); }catch(e){}
 }
 function loadBooks(){
+  // Try localStorage (will be updated from Firebase on startup)
   try{
     const s=localStorage.getItem("ces_books_v2");
     if(s){ const p=JSON.parse(s); if(Array.isArray(p)&&p.length) BOOKS=p; }
@@ -3199,41 +3200,39 @@ function showSyncStatus(msg, color){
 }
 
 async function saveCards(){
-  // Always save to localStorage as instant backup
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(allCards)); }catch(e){}
-  // Save to cloud storage (shared)
   showSyncStatus("⟳ Saving…", "var(--gold)");
+  // Firebase is the primary cloud — works on all devices
   try{
-    const result = await window.storage.set(STORAGE_KEY, JSON.stringify(allCards), true);
-    if(result) showSyncStatus("✓ Saved to cloud", "var(--green)");
-    else showSyncStatus("⚠ Cloud save failed", "var(--wine)");
+    if(window.cesSyncFlashcardsNow) await window.cesSyncFlashcardsNow();
+    showSyncStatus("✓ Saved — synced to all devices", "var(--green)");
   }catch(e){
     showSyncStatus("✓ Saved locally", "var(--mid)");
   }
-  try{ if(window.cesSyncFlashcardsNow) await window.cesSyncFlashcardsNow(); }catch(e){}
+  // window.storage as bonus (Claude.ai only)
+  try{ window.storage && await window.storage.set(STORAGE_KEY, JSON.stringify(allCards), true); }catch(e){}
 }
 
 async function loadCards(){
-  // Show loading state
   $("CW").textContent = ""; $("CP").textContent = "Loading…";
+  // 1. Firebase — primary source, works on all devices
   try{
-    // Try cloud first (shared data)
-    const result = await window.storage.get(STORAGE_KEY, true);
-    if(result && result.value){
-      const p = JSON.parse(result.value);
-      if(Array.isArray(p) && p.length > 0){
-        allCards = p;
-        showSyncStatus("✓ Cards loaded from cloud", "var(--green)");
-        return;
-      }
+    const cardsData = await cesGetSharedDoc("flashcards", "cards");
+    const booksData = await cesGetSharedDoc("flashcards", "books");
+    if(cardsData && Array.isArray(cardsData.items) && cardsData.items.length > 0){
+      allCards = cardsData.items;
+      window.sbCards = allCards;
+      if(booksData && Array.isArray(booksData.items) && booksData.items.length > 0) BOOKS = booksData.items;
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(allCards)); }catch(e){}
+      showSyncStatus("✓ Cards loaded", "var(--green)");
+      return;
     }
   }catch(e){}
-  // Fallback to localStorage
+  // 2. localStorage fallback
   try{
     const saved = localStorage.getItem(STORAGE_KEY);
-    if(saved){ const p=JSON.parse(saved); if(Array.isArray(p)&&p.length>0){ allCards=p; showSyncStatus("Cards loaded locally","var(--mid)"); return; } }
+    if(saved){ const p=JSON.parse(saved); if(Array.isArray(p)&&p.length>0){ allCards=p; window.sbCards=allCards; showSyncStatus("Cards loaded (offline)","var(--mid)"); return; } }
   }catch(e){}
-  // Default cards
   showSyncStatus("Using default cards","var(--mid)");
 }
 
@@ -3275,10 +3274,15 @@ function shuffle(arr){ return [...arr].sort(()=>Math.random()-.5); }
 
 /* ── LOAD CARDS ── */
 async function sbLoadCards(){
+  // 1. Firebase first
   try{
-    const r = await window.storage.get(SB_STORAGE_KEY, true);
-    if(r && r.value){ const p=JSON.parse(r.value); if(Array.isArray(p)&&p.length){ sbCards=p; return; } }
+    const cardsData = await cesGetSharedDoc("flashcards", "cards");
+    if(cardsData && Array.isArray(cardsData.items) && cardsData.items.length > 0){
+      sbCards = cardsData.items;
+      return;
+    }
   }catch(e){}
+  // 2. localStorage fallback
   try{
     const s=localStorage.getItem(SB_STORAGE_KEY);
     if(s){ const p=JSON.parse(s); if(Array.isArray(p)&&p.length){ sbCards=p; return; } }
@@ -5044,12 +5048,23 @@ window.cesLoadSoundSceneNow = async function(){
 };
 setTimeout(async ()=>{
   try{
-    gateLoadStudents();
-    if(typeof gateRenderTeacherList === "function") gateRenderTeacherList();
+    // Load students from Firebase
+    await window.cesLoadStudentsNow();
+    // Load flashcards from Firebase and re-render
     await window.cesLoadFlashcardsNow();
+    // Re-render FC if it was already initialized
+    if(typeof buildBookGrid === "function") buildBookGrid();
+    if(typeof buildLessonGrid === "function") buildLessonGrid();
+    if(typeof updateRangeSelects === "function") updateRangeSelects();
+    if(typeof buildAllBookSelects === "function") buildAllBookSelects();
+    if(typeof applyDeck === "function") applyDeck();
+    // Re-render SB
+    if(typeof sbmBuildBooks === "function") sbmBuildBooks();
+    // Load Sound & Scene
     await window.cesLoadSoundSceneNow();
-  }catch(e){}
-}, 1800);
+    if(typeof ssmBuildBooks === "function") ssmBuildBooks();
+  }catch(e){ console.error("Startup Firebase load error:", e); }
+}, 1200);
 </script>
 
 
