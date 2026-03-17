@@ -1445,9 +1445,11 @@ setTimeout(async ()=>{
     await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
     cesWatchSharedDoc("flashcards", "cards", function(data){
       if(data && Array.isArray(data.items) && data.items.length > 0){
+        var newCards = data.items.length + "_" + (data.updatedAt||"");
+        if(window._lastCards === newCards) return; // no change, skip
+        window._lastCards = newCards;
         if(typeof allCards !== "undefined") allCards.splice(0, allCards.length, ...data.items);
         window.allCards = data.items; window.sbCards = data.items;
-        try{ localStorage.setItem("ces_flashcards_v2", JSON.stringify(data.items)); }catch(e){}
         if(typeof buildBookGrid    === "function") buildBookGrid();
         if(typeof buildLessonGrid  === "function") buildLessonGrid();
         if(typeof updateRangeSelects === "function") updateRangeSelects();
@@ -1461,10 +1463,11 @@ setTimeout(async ()=>{
     });
     cesWatchSharedDoc("flashcards", "books", function(data){
       if(data && Array.isArray(data.items) && data.items.length > 0){
-        // Update BOTH global and local BOOKS
+        var newBooks = JSON.stringify(data.items);
+        if(window._lastBooks === newBooks) return; // no change, skip
+        window._lastBooks = newBooks;
         window.BOOKS = data.items;
         if(typeof BOOKS !== "undefined") BOOKS.splice(0, BOOKS.length, ...data.items);
-        try{ localStorage.setItem("ces_books_v2", JSON.stringify(data.items)); }catch(e){}
         if(window.cesDebug) window.cesDebug("📚 Books: "+data.items.join(", "));
         if(typeof buildBookGrid === "function") buildBookGrid();
         if(typeof buildAllBookSelects === "function") buildAllBookSelects();
@@ -5235,23 +5238,6 @@ if('serviceWorker' in navigator){
 }
 </script>
 
-<script>
-/* CES — Safety sync: re-render if Firebase data differs from screen */
-setInterval(function(){
-  try{
-    const grid = document.getElementById('BOOK_GRID');
-    if(!grid) return;
-    const shownBooks = Array.from(grid.querySelectorAll('.book-pill')).map(b=>b.textContent.replace('×','').trim());
-    const firebaseBooks = window.BOOKS || [];
-    const missing = firebaseBooks.filter(b => b !== 'All' && !shownBooks.includes(b));
-    if(missing.length > 0){
-      console.log('CES: Sync fix — missing books:', missing);
-      if(window.cesDebug) window.cesDebug('🔄 Sync: adding '+missing.join(','));
-      if(typeof buildBookGrid === 'function') buildBookGrid();
-      if(typeof updateRangeSelects === 'function') updateRangeSelects();
-    }
-  }catch(e){}
-}, 3000);
-</script>
+
 </body>
 </html>
