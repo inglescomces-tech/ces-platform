@@ -5260,30 +5260,43 @@ setInterval(function(){
 </script>
 
 <script>
-/* Books live sync - runs after everything is loaded */
+/* Books + Cards live sync */
 setTimeout(async function(){
   try{
     await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,4000))]);
-    var data = await cesGetSharedDoc("flashcards","books");
-    if(data && Array.isArray(data.items) && data.items.length > 0){
-      BOOKS = data.items;
-      window.BOOKS = BOOKS;
+
+    // Live listener for BOOKS
+    cesWatchSharedDoc("flashcards","books",function(data){
+      if(!data||!Array.isArray(data.items)||!data.items.length) return;
+      var sig = JSON.stringify(data.items);
+      if(window._bSig===sig) return;
+      window._bSig = sig;
+      BOOKS = data.items; window.BOOKS = BOOKS;
       if(typeof buildBookGrid==="function") buildBookGrid();
       if(typeof buildAllBookSelects==="function") buildAllBookSelects();
       if(typeof updateRangeSelects==="function") updateRangeSelects();
-      console.log("CES: Books updated", BOOKS);
-    }
-    var cards = await cesGetSharedDoc("flashcards","cards");
-    if(cards && Array.isArray(cards.items) && cards.items.length > 0){
-      allCards = cards.items;
-      window.allCards = allCards;
-      window.sbCards = allCards;
+      console.log("CES: Books →", BOOKS.join(", "));
+    });
+
+    // Live listener for CARDS
+    cesWatchSharedDoc("flashcards","cards",function(data){
+      if(!data||!Array.isArray(data.items)||!data.items.length) return;
+      var sig = data.items.length+"_"+(data.updatedAt||"");
+      if(window._cSig===sig) return;
+      window._cSig = sig;
+      allCards = data.items; window.allCards = allCards; window.sbCards = allCards;
       if(typeof buildBookGrid==="function") buildBookGrid();
+      if(typeof buildLessonGrid==="function") buildLessonGrid();
+      if(typeof updateRangeSelects==="function") updateRangeSelects();
+      if(typeof buildAllBookSelects==="function") buildAllBookSelects();
       if(typeof applyDeck==="function") applyDeck();
-      console.log("CES: Cards updated", allCards.length);
-    }
-  }catch(e){ console.log("CES books sync error:", e); }
-}, 2000);
+      if(typeof buildList==="function") buildList();
+      if(typeof sbmBuildBooks==="function") sbmBuildBooks();
+      console.log("CES: Cards →", allCards.length);
+    });
+
+  }catch(e){ console.log("CES sync error:", e); }
+}, 1500);
 </script>
 
 </body>
