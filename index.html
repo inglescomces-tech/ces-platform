@@ -1251,6 +1251,20 @@ font-family:"DM Sans",sans-serif;
 }
 .version-badge strong{color:inherit;font-weight:500;}
 .version-badge .v-sub{display:none;font-size:8px;display:block;margin-top:2px;}
+
+/* CES Debug Bar */
+#ces-debug{
+  position:fixed;bottom:0;left:0;right:0;z-index:99999;
+  background:#1e3a5f;color:#fff;font-family:monospace;font-size:11px;
+  padding:6px 10px;line-height:1.6;display:none;
+  border-top:2px solid #c49a3c;
+}
+#ces-debug.show{display:block;}
+#ces-debug-toggle{
+  position:fixed;bottom:0;right:0;z-index:100000;
+  background:#c49a3c;color:#1e3a5f;border:none;
+  font-size:10px;font-weight:700;padding:4px 8px;cursor:pointer;
+}
 </style>
 </head>
 <body>
@@ -1948,6 +1962,18 @@ font-family:"DM Sans",sans-serif;
 </div>
 
 <script>
+/* CES DEBUG */
+
+/* CES DEBUG */
+function cesDebug(msg){
+  const el = document.getElementById('ces-debug-content');
+  if(!el) return;
+  const time = new Date().toLocaleTimeString();
+  el.innerHTML = '['+time+'] '+msg+'<br>'+el.innerHTML;
+  console.log('CES DEBUG:', msg);
+}
+window.cesDebug = cesDebug;
+
 /* NAV */
 const TEACHER_GATE_PASSWORD = "Angras87";
 const STUDENT_ACCESS_STORAGE = "ces_student_access_v1";
@@ -3232,7 +3258,7 @@ async function loadCards(){
       }
       try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(allCards)); }catch(e){}
       showSyncStatus("✓ Cards loaded", "var(--green)");
-      console.log("CES: Loaded", allCards.length, "cards from Firebase");
+      console.log("CES: Loaded", allCards.length, "cards from Firebase"); if(window.cesDebug) window.cesDebug("✅ loadCards: "+allCards.length+" cards loaded");
       return;
     }
   }catch(e){}
@@ -4975,7 +5001,7 @@ window.cesFirebase = {
   setDoc
 };
 if(window._cesFirebaseResolve) window._cesFirebaseResolve();
-console.log("CES Firebase connected.");
+console.log("CES Firebase connected."); if(window.cesDebug) window.cesDebug("🔥 Firebase connected!");
 </script>
 
 <script>
@@ -4996,14 +5022,14 @@ async function cesSetSharedDoc(collectionName, docId, data){
   }
 }
 async function cesGetSharedDoc(collectionName, docId){
-  if(!cesFbReady()){ console.warn("CES: Firebase not ready for GET", collectionName, docId); return null; }
+  if(!cesFbReady()){ console.warn("CES: Firebase not ready for GET", collectionName, docId); if(window.cesDebug) window.cesDebug("⚠️ Firebase NOT READY for GET "+collectionName); return null; }
   try{
     const fb = window.cesFirebase;
     const snap = await fb.getDoc(fb.doc(fb.db, collectionName, docId));
-    console.log("CES: Firebase GET", collectionName, docId, snap.exists()?"found":"empty");
+    console.log("CES: Firebase GET", collectionName, docId, snap.exists()?"found":"empty"); if(window.cesDebug) window.cesDebug("GET "+collectionName+"/"+docId+" → "+(snap.exists()?"✅ found":"❌ empty"));
     return snap.exists() ? snap.data() : null;
   }catch(err){
-    console.error("CES: Firebase GET FAILED", collectionName, docId, err.code, err.message);
+    console.error("CES: Firebase GET FAILED", collectionName, docId, err.code, err.message); if(window.cesDebug) window.cesDebug("GET FAILED "+collectionName+" → ❌ "+err.code);
     return null;
   }
 }
@@ -5063,7 +5089,7 @@ window.cesLoadFlashcardsNow = async function(){
     // Re-render SB
     if(typeof sbmBuildBooks    === "function") sbmBuildBooks();
     if(typeof sbmUpdateLessons === "function") sbmUpdateLessons();
-    console.log("CES: FC re-rendered with", cardsData.items.length, "cards from Firebase");
+    console.log("CES: FC re-rendered with", cardsData.items.length, "cards from Firebase"); if(window.cesDebug) window.cesDebug("✅ FC loaded "+cardsData.items.length+" cards — re-rendered!");
   }
 };
 window.cesSyncSoundSceneNow = async function(){
@@ -5098,5 +5124,12 @@ setTimeout(async ()=>{
 
 
 <div class="version-badge" id="CES_VERSION_BADGE">v2026.03</div>
+
+<!-- CES Debug Bar -->
+<button id="ces-debug-toggle" onclick="document.getElementById('ces-debug').classList.toggle('show')">🔍 DEBUG</button>
+<div id="ces-debug">
+  <div id="ces-debug-content">Loading...</div>
+</div>
+
 </body>
 </html>
