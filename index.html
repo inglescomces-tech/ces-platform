@@ -211,6 +211,47 @@ body { font-family: "DM Sans", sans-serif; background: var(--cream); min-height:
   .fc-trans { font-size: 30px; }
   .fc-scene { height: 240px; }
 }
+
+/* ── Student Management Panel ── */
+.sm-panel{width:100%;max-width:var(--w);background:#fff;border-radius:18px;
+  overflow:hidden;border:1.5px solid rgba(30,58,95,.07);margin-bottom:16px;
+  display:none;}
+.sm-panel.open{display:block;}
+.sm-head{background:var(--navy);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;}
+.sm-head-title{font-family:"Playfair Display",serif;font-size:15px;font-weight:700;color:#fff;
+  display:flex;align-items:center;gap:8px;}
+.sm-badge{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--gold);background:rgba(196,154,60,.18);padding:2px 8px;border-radius:5px;}
+.sm-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;}
+.sm-body{padding:18px;}
+.sm-lbl{font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;
+  color:var(--mid);display:block;margin-bottom:7px;}
+.sm-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.sm-inp{flex:1;min-width:120px;padding:10px 13px;border:1.5px solid rgba(30,58,95,.13);
+  border-radius:10px;font-family:"DM Sans",sans-serif;font-size:13px;color:var(--navy);background:#fff;}
+.sm-inp:focus{outline:none;border-color:var(--navy);}
+.sm-btn{padding:10px 20px;background:var(--navy);color:#fff;border:none;border-radius:10px;
+  font-family:"DM Sans",sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.sm-btn:hover{background:#2a4f7c;}
+.sm-fb{font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;display:none;margin-bottom:10px;}
+.sm-fb.ok{background:rgba(46,125,69,.1);color:#2e7d45;display:block;}
+.sm-fb.err{background:rgba(122,32,32,.08);color:var(--wine);display:block;}
+.sm-divider{border:none;border-top:1.5px solid rgba(30,58,95,.06);margin:14px 0;}
+.sm-search{width:100%;padding:9px 13px;border:1.5px solid rgba(30,58,95,.12);border-radius:10px;
+  font-family:"DM Sans",sans-serif;font-size:13px;color:var(--navy);margin-bottom:12px;}
+.sm-search:focus{outline:none;border-color:var(--navy);}
+.sm-count{font-size:11px;color:var(--mid);margin-bottom:10px;}
+.sm-item{display:flex;align-items:center;gap:10px;padding:11px 13px;
+  border:1.5px solid rgba(30,58,95,.07);border-radius:11px;margin-bottom:7px;background:#fafbfc;}
+.sm-item-info{flex:1;}
+.sm-item-name{font-size:14px;font-weight:600;color:var(--navy);}
+.sm-item-login{font-size:11px;color:var(--mid);margin-top:1px;}
+.sm-item-del{padding:6px 11px;background:#fff;color:var(--wine);
+  border:1.5px solid rgba(122,32,32,.18);border-radius:8px;font-size:11px;
+  font-weight:600;cursor:pointer;transition:.15s;}
+.sm-item-del:hover{background:rgba(122,32,32,.05);}
+.sm-empty{text-align:center;padding:24px;color:var(--mid);font-size:13px;}
+
 </style>
 </head>
 <body>
@@ -233,7 +274,39 @@ body { font-family: "DM Sans", sans-serif; background: var(--cream); min-height:
     <span class="home-label">Activities</span>
   </div>
 
-  <div class="act-grid">
+  
+<!-- Student Management Panel -->
+<div class="sm-panel" id="SM_PANEL">
+  <div class="sm-head">
+    <div class="sm-head-title">
+      Manage Students <span class="sm-badge">Teacher Mode</span>
+    </div>
+    <button class="sm-close" onclick="smClose()">✕</button>
+  </div>
+  <div class="sm-body">
+
+    <!-- Add student -->
+    <label class="sm-lbl">Add Student</label>
+    <div class="sm-row">
+      <input class="sm-inp" id="SM_NAME"  type="text"     placeholder="Name (optional)"/>
+      <input class="sm-inp" id="SM_LOGIN" type="text"     placeholder="Login *"/>
+      <input class="sm-inp" id="SM_PASS"  type="password" placeholder="Password *"/>
+      <button class="sm-btn" onclick="smAdd()">＋ Add</button>
+    </div>
+    <div class="sm-fb" id="SM_FB"></div>
+
+    <hr class="sm-divider"/>
+
+    <!-- Student list -->
+    <label class="sm-lbl">Registered Students</label>
+    <input class="sm-search" id="SM_SEARCH" placeholder="Search students…" oninput="smBuildList()"/>
+    <div class="sm-count" id="SM_COUNT"></div>
+    <div id="SM_LIST"></div>
+
+  </div>
+</div>
+
+<div class="act-grid">
     <div class="act-card" id="ACT_FC">
       <span class="act-badge ab-live">Live</span>
       <div class="act-icon">🃏</div>
@@ -506,7 +579,13 @@ function studentLogin() {
 // TEACHER LOGIN
 // ═══════════════════════════════════════════
 document.getElementById('HOME_TEACHER_BTN').onclick = () => {
-  if (teacherUnlocked) { teacherUnlocked = false; session = {role:null,name:'',login:''}; updateHomeUI(); return; }
+  if (teacherUnlocked) {
+    // Toggle student management panel
+    var panel = document.getElementById('SM_PANEL');
+    if (panel.classList.contains('open')) { smClose(); }
+    else { smOpen(); }
+    return;
+  }
   document.getElementById('TEACHER_PW_OV').classList.add('open');
   setTimeout(() => document.getElementById('T_PW').focus(), 60);
 };
@@ -526,6 +605,10 @@ function teacherLogin() {
     document.getElementById('T_PW').value = '';
     document.getElementById('T_ERR').textContent = '';
     updateHomeUI();
+    // If on home page, open student management
+    if (document.getElementById('PAGE_HOME').classList.contains('active')) {
+      smOpen();
+    }
   } else {
     document.getElementById('T_ERR').textContent = 'Incorrect password.';
     document.getElementById('T_PW').value = '';
@@ -835,6 +918,77 @@ function tpDelCard(i) {
   saveCards();
   tpBuildList();
   fcRenderBooks();
+}
+
+
+// ═══════════════════════════════════════════
+// STUDENT MANAGEMENT
+// ═══════════════════════════════════════════
+async function smSave() {
+  return await window.CES.set('students', 'shared', { items: students, updatedAt: Date.now() });
+}
+
+function smOpen() {
+  document.getElementById('SM_PANEL').classList.add('open');
+  smBuildList();
+}
+function smClose() {
+  document.getElementById('SM_PANEL').classList.remove('open');
+}
+
+function smAdd() {
+  var name  = (document.getElementById('SM_NAME').value  || '').trim();
+  var login = (document.getElementById('SM_LOGIN').value || '').trim().toLowerCase();
+  var pass  = (document.getElementById('SM_PASS').value  || '').trim();
+  var fb    = document.getElementById('SM_FB');
+  fb.className = 'sm-fb';
+
+  if (!login) { fb.className='sm-fb err'; fb.textContent='Login is required.'; return; }
+  if (!pass)  { fb.className='sm-fb err'; fb.textContent='Password is required.'; return; }
+  if (students.some(s => (s.login||'').toLowerCase() === login)) {
+    fb.className='sm-fb err'; fb.textContent='Login already exists.'; return;
+  }
+
+  students.push({ name, login, password: pass });
+  smSave().then(ok => {
+    fb.className = ok ? 'sm-fb ok' : 'sm-fb err';
+    fb.textContent = ok ? '✓ Student added!' : '⚠ Saved locally only.';
+    setTimeout(() => { fb.className='sm-fb'; }, 2500);
+  });
+
+  document.getElementById('SM_NAME').value  = '';
+  document.getElementById('SM_LOGIN').value = '';
+  document.getElementById('SM_PASS').value  = '';
+  smBuildList();
+}
+
+function smDelete(login) {
+  if (!confirm('Delete student "' + login + '"?')) return;
+  students = students.filter(s => (s.login||'').toLowerCase() !== login.toLowerCase());
+  smSave();
+  smBuildList();
+}
+
+function smBuildList() {
+  var q   = (document.getElementById('SM_SEARCH').value || '').toLowerCase();
+  var el  = document.getElementById('SM_LIST');
+  var cnt = document.getElementById('SM_COUNT');
+  var filtered = students.filter(s =>
+    !q || (s.name||'').toLowerCase().includes(q) || (s.login||'').toLowerCase().includes(q)
+  );
+  cnt.textContent = filtered.length + ' student' + (filtered.length !== 1 ? 's' : '');
+  if (!filtered.length) {
+    el.innerHTML = '<div class="sm-empty">No students registered yet.</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(s => `
+    <div class="sm-item">
+      <div class="sm-item-info">
+        <div class="sm-item-name">${s.name || s.login}</div>
+        <div class="sm-item-login">Login: ${s.login} · Password: ${'•'.repeat((s.password||'').length)}</div>
+      </div>
+      <button class="sm-item-del" onclick="smDelete('${s.login}')">✕ Remove</button>
+    </div>`).join('');
 }
 
 // ═══════════════════════════════════════════
