@@ -1270,12 +1270,6 @@ font-family:"DM Sans",sans-serif;
 }
 </style>
 
-<script>
-/* CES — Firebase readiness promise */
-window.cesFirebaseReady = new Promise(function(resolve){
-  window._cesFirebaseResolve = resolve;
-});
-</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -1310,10 +1304,12 @@ window.cesFirebase = {
 if(window._cesFirebaseResolve) window._cesFirebaseResolve();
 console.log("CES Firebase connected."); if(window.cesDebug) window.cesDebug("🔥 Firebase connected!");
 </script>
-
-
-
-
+<script>
+/* CES — Firebase readiness promise */
+window.cesFirebaseReady = new Promise(function(resolve){
+  window._cesFirebaseResolve = resolve;
+});
+</script>
 <script>
 /* CES FIREBASE LIVE SYNC */
 function cesFbReady(){
@@ -1445,11 +1441,9 @@ setTimeout(async ()=>{
     await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
     cesWatchSharedDoc("flashcards", "cards", function(data){
       if(data && Array.isArray(data.items) && data.items.length > 0){
-        var newCards = data.items.length + "_" + (data.updatedAt||"");
-        if(window._lastCards === newCards) return; // no change, skip
-        window._lastCards = newCards;
         if(typeof allCards !== "undefined") allCards.splice(0, allCards.length, ...data.items);
         window.allCards = data.items; window.sbCards = data.items;
+        try{ localStorage.setItem("ces_flashcards_v2", JSON.stringify(data.items)); }catch(e){}
         if(typeof buildBookGrid    === "function") buildBookGrid();
         if(typeof buildLessonGrid  === "function") buildLessonGrid();
         if(typeof updateRangeSelects === "function") updateRangeSelects();
@@ -1463,11 +1457,10 @@ setTimeout(async ()=>{
     });
     cesWatchSharedDoc("flashcards", "books", function(data){
       if(data && Array.isArray(data.items) && data.items.length > 0){
-        var newBooks = JSON.stringify(data.items);
-        if(window._lastBooks === newBooks) return; // no change, skip
-        window._lastBooks = newBooks;
+        // Update BOTH global and local BOOKS
         window.BOOKS = data.items;
         if(typeof BOOKS !== "undefined") BOOKS.splice(0, BOOKS.length, ...data.items);
+        try{ localStorage.setItem("ces_books_v2", JSON.stringify(data.items)); }catch(e){}
         if(window.cesDebug) window.cesDebug("📚 Books: "+data.items.join(", "));
         if(typeof buildBookGrid === "function") buildBookGrid();
         if(typeof buildAllBookSelects === "function") buildAllBookSelects();
@@ -2442,20 +2435,25 @@ function gateCloseStudent(){
   document.getElementById("STUDENT_GATE_OV").classList.remove("open");
 }
 async function gateSubmitStudent(){
-  (async function(){
-    var login = gateNormalize(document.getElementById("STUDENT_GATE_LOGIN")?.value);
-    var password = (document.getElementById("STUDENT_GATE_PASS")?.value || "").trim();
-    var err = document.getElementById("STUDENT_GATE_ERR");
-    if(err) err.textContent = "Checking...";
-    try{ await window.cesLoadStudentsNow(); }catch(e){ gateLoadStudents(); }
-    var found = studentAccessList.find(function(s){ return gateNormalize(s.login)===login && String(s.password||"")===password; });
-    if(!found){ if(err) err.textContent = "Invalid login or password."; return; }
-    gateSession = { role:"student", login: found.login||"", name: found.name||"" };
-    gateSaveSession();
-    gateCloseStudent();
-    gateUpdateUI();
-    if(gatePendingPage){ var page=gatePendingPage; gatePendingPage=null; openPage(page); }
-  })();
+  const login = gateNormalize(document.getElementById("STUDENT_GATE_LOGIN")?.value);
+  const password = (document.getElementById("STUDENT_GATE_PASS")?.value || "").trim();
+  const err = document.getElementById("STUDENT_GATE_ERR");
+  if(err) err.textContent = "Checking...";
+  try{ await window.cesLoadStudentsNow(); }catch(e){ gateLoadStudents(); }
+  const found = studentAccessList.find(s => gateNormalize(s.login) === login && String(s.password||"") === password);
+  if(!found){
+    if(err) err.textContent = "Invalid login or password.";
+    return;
+  }
+  gateSession = { role:"student", login: found.login || "", name: found.name || "" };
+  gateSaveSession();
+  gateCloseStudent();
+  gateUpdateUI();
+  if(gatePendingPage){
+    const page = gatePendingPage;
+    gatePendingPage = null;
+    openPage(page);
+  }
 }
 function gateLogout(){
   gatePendingPage = null;
@@ -2578,7 +2576,11 @@ function saveBooks(){
   try{ window.cesSyncFlashcardsNow && window.cesSyncFlashcardsNow(); }catch(e){}
 }
 function loadBooks(){
-  // Books come from Firebase via loadCards() - do not cache
+  // Try localStorage (will be updated from Firebase on startup)
+  try{
+    const s=localStorage.getItem("ces_books_v2");
+    if(s){ const p=JSON.parse(s); if(Array.isArray(p)&&p.length) BOOKS=p; }
+  }catch(e){}
 }
 
 function buildBookGrid(){
@@ -3494,42 +3496,35 @@ async function saveCards(){
 }
 
 async function loadCards(){
-  $("CW").textContent = ""; $("CP").textContent = "Loading...";
+  $("CW").textContent = ""; $("CP").textContent = "Loading…";
+  // 1. Firebase — primary source, works on all devices
   try{
     await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
-    if(!window._fcWatchActive){
-      window._fcWatchActive = true;
-      cesWatchSharedDoc("flashcards", "cards", function(data){
-        if(!data||!Array.isArray(data.items)||!data.items.length) return;
-        var sig=data.items.length+"_"+(data.updatedAt||"");
-        if(window._lastCards===sig) return;
-        window._lastCards=sig;
-        allCards=data.items; window.allCards=allCards; window.sbCards=allCards;
-        showSyncStatus("Cards loaded","var(--green)");
-        if(typeof buildBookGrid==="function") buildBookGrid();
-        if(typeof buildLessonGrid==="function") buildLessonGrid();
-        if(typeof updateRangeSelects==="function") updateRangeSelects();
-        if(typeof buildAllBookSelects==="function") buildAllBookSelects();
-        if(typeof applyDeck==="function") applyDeck();
-        if(typeof buildList==="function") buildList();
-        if(typeof sbmBuildBooks==="function") sbmBuildBooks();
-        if(window.cesDebug) window.cesDebug("Cards: "+allCards.length);
-      });
-      cesWatchSharedDoc("flashcards", "books", function(data){
-        if(!data||!Array.isArray(data.items)||!data.items.length) return;
-        var sig=JSON.stringify(data.items);
-        if(window._lastBooks===sig) return;
-        window._lastBooks=sig;
-        BOOKS=data.items; window.BOOKS=BOOKS;
-        if(typeof buildBookGrid==="function") buildBookGrid();
-        if(typeof buildAllBookSelects==="function") buildAllBookSelects();
-        if(typeof updateRangeSelects==="function") updateRangeSelects();
-        if(window.cesDebug) window.cesDebug("Books: "+BOOKS.join(", "));
-      });
+    const cardsData = await cesGetSharedDoc("flashcards", "cards");
+    const booksData = await cesGetSharedDoc("flashcards", "books");
+    if(cardsData && Array.isArray(cardsData.items) && cardsData.items.length > 0){
+      allCards = cardsData.items;
+      window.allCards = allCards;
+      window.sbCards  = allCards;
+      if(booksData && Array.isArray(booksData.items) && booksData.items.length > 0){
+        BOOKS = booksData.items;
+        window.BOOKS = BOOKS;
+      }
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(allCards)); }catch(e){}
+      showSyncStatus("✓ Cards loaded", "var(--green)");
+      console.log("CES: Loaded", allCards.length, "cards from Firebase"); if(window.cesDebug) window.cesDebug("✅ loadCards: "+allCards.length+" cards loaded");
+      return;
     }
-  }catch(e){
-    if(!allCards.length){ allCards=DEF.map(o=>({...o})); window.allCards=allCards; window.sbCards=allCards; }
-  }
+  }catch(e){}
+  // 2. localStorage fallback
+  try{
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(saved){ const p=JSON.parse(saved); if(Array.isArray(p)&&p.length>0){ allCards=p; window.sbCards=allCards; showSyncStatus("Cards loaded (offline)","var(--mid)"); return; } }
+  }catch(e){}
+  // 3. Last resort: default cards so app isn't empty
+  allCards = DEF.map(o=>({...o}));
+  window.sbCards = allCards;
+  showSyncStatus("Using default cards","var(--mid)");
 }
 
 /* ═══════════════════════════════════════════
@@ -5245,6 +5240,51 @@ if('serviceWorker' in navigator){
 }
 </script>
 
+<script>
+/* CES — Safety sync: re-render if Firebase data differs from screen */
+setInterval(function(){
+  try{
+    const grid = document.getElementById('BOOK_GRID');
+    if(!grid) return;
+    const shownBooks = Array.from(grid.querySelectorAll('.book-pill')).map(b=>b.textContent.replace('×','').trim());
+    const firebaseBooks = window.BOOKS || [];
+    const missing = firebaseBooks.filter(b => b !== 'All' && !shownBooks.includes(b));
+    if(missing.length > 0){
+      console.log('CES: Sync fix — missing books:', missing);
+      if(window.cesDebug) window.cesDebug('🔄 Sync: adding '+missing.join(','));
+      if(typeof buildBookGrid === 'function') buildBookGrid();
+      if(typeof updateRangeSelects === 'function') updateRangeSelects();
+    }
+  }catch(e){}
+}, 3000);
+</script>
+
+<script>
+/* Books live sync - runs after everything is loaded */
+setTimeout(async function(){
+  try{
+    await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,4000))]);
+    var data = await cesGetSharedDoc("flashcards","books");
+    if(data && Array.isArray(data.items) && data.items.length > 0){
+      BOOKS = data.items;
+      window.BOOKS = BOOKS;
+      if(typeof buildBookGrid==="function") buildBookGrid();
+      if(typeof buildAllBookSelects==="function") buildAllBookSelects();
+      if(typeof updateRangeSelects==="function") updateRangeSelects();
+      console.log("CES: Books updated", BOOKS);
+    }
+    var cards = await cesGetSharedDoc("flashcards","cards");
+    if(cards && Array.isArray(cards.items) && cards.items.length > 0){
+      allCards = cards.items;
+      window.allCards = allCards;
+      window.sbCards = allCards;
+      if(typeof buildBookGrid==="function") buildBookGrid();
+      if(typeof applyDeck==="function") applyDeck();
+      console.log("CES: Cards updated", allCards.length);
+    }
+  }catch(e){ console.log("CES books sync error:", e); }
+}, 2000);
+</script>
 
 </body>
 </html>
