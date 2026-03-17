@@ -3201,16 +3201,18 @@ function showSyncStatus(msg, color){
 
 async function saveCards(){
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(allCards)); }catch(e){}
+  // Keep window.allCards in sync with local allCards
+  window.allCards = allCards;
+  window.BOOKS    = BOOKS;
   showSyncStatus("⟳ Saving…", "var(--gold)");
-  // Firebase is the primary cloud — works on all devices
   try{
     if(window.cesSyncFlashcardsNow) await window.cesSyncFlashcardsNow();
     showSyncStatus("✓ Saved — synced to all devices", "var(--green)");
+    console.log("CES: Saved", allCards.length, "cards to Firebase");
   }catch(e){
-    showSyncStatus("✓ Saved locally", "var(--mid)");
+    console.error("CES: Save failed", e);
+    showSyncStatus("⚠ Saved locally only", "var(--wine)");
   }
-  // window.storage as bonus (Claude.ai only)
-  try{ window.storage && await window.storage.set(STORAGE_KEY, JSON.stringify(allCards), true); }catch(e){}
 }
 
 async function loadCards(){
@@ -3222,10 +3224,15 @@ async function loadCards(){
     const booksData = await cesGetSharedDoc("flashcards", "books");
     if(cardsData && Array.isArray(cardsData.items) && cardsData.items.length > 0){
       allCards = cardsData.items;
-      window.sbCards = allCards;
-      if(booksData && Array.isArray(booksData.items) && booksData.items.length > 0) BOOKS = booksData.items;
+      window.allCards = allCards;
+      window.sbCards  = allCards;
+      if(booksData && Array.isArray(booksData.items) && booksData.items.length > 0){
+        BOOKS = booksData.items;
+        window.BOOKS = BOOKS;
+      }
       try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(allCards)); }catch(e){}
       showSyncStatus("✓ Cards loaded", "var(--green)");
+      console.log("CES: Loaded", allCards.length, "cards from Firebase");
       return;
     }
   }catch(e){}
