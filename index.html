@@ -799,6 +799,10 @@ body {
   font-size: 10px; color: rgba(122,130,153,.55); letter-spacing: .3px;
 }
 
+
+.tp-list-check { width: 16px; height: 16px; cursor: pointer; accent-color: var(--navy); flex-shrink: 0; }
+.tp-list-item.selected { background: rgba(30,58,95,.05); border-color: rgba(30,58,95,.15); }
+
 </style>
 </head>
 <body>
@@ -996,7 +1000,49 @@ body {
 
         <!-- LIST TAB -->
         <div id="TP_BODY_LIST" style="display:none;">
-          <input class="tp-search" id="TP_SEARCH" placeholder="Search cards…" oninput="tpBuildList()"/>
+          <!-- Filters -->
+          <div class="tp-row" style="margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+            <input class="tp-search" id="TP_SEARCH" placeholder="Search cards…" oninput="tpBuildList()" style="flex:1;min-width:140px;margin:0;"/>
+            <select class="tp-sel" id="TP_FBOOK" onchange="tpBuildList()">
+              <option value="">All books</option>
+            </select>
+            <select class="tp-sel" id="TP_FLESSON" onchange="tpBuildList()">
+              <option value="">All lessons</option>
+            </select>
+          </div>
+          <!-- Bulk actions -->
+          <div class="tp-row" style="margin-bottom:10px;align-items:center;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mid);cursor:pointer;">
+              <input type="checkbox" id="TP_SELECT_ALL" onchange="tpSelectAll(this.checked)"/> Select all
+            </label>
+            <span style="font-size:11px;color:var(--mid);margin-left:6px;" id="TP_SEL_COUNT"></span>
+            <div style="margin-left:auto;display:flex;gap:6px;">
+              <button class="tp-add-btn" style="background:rgba(122,32,32,.8);display:none;" id="TP_DEL_SEL" onclick="tpDeleteSelected()">✕ Delete selected</button>
+              <button class="tp-add-btn" style="background:rgba(30,58,95,.7);display:none;" id="TP_EDIT_SEL" onclick="tpEditSelected()">✎ Edit selected</button>
+            </div>
+          </div>
+          <!-- Edit panel (hidden by default) -->
+          <div id="TP_EDIT_PANEL" style="display:none;background:#f5f6f9;border-radius:12px;padding:14px;margin-bottom:12px;border:1px solid rgba(30,58,95,.08);">
+            <div class="tp-lbl" style="margin-bottom:8px;">Edit selected cards</div>
+            <div class="tp-row" style="flex-wrap:wrap;gap:8px;">
+              <div>
+                <label class="tp-lbl">Move to Book</label>
+                <select class="tp-sel" id="TP_EDIT_BOOK"></select>
+              </div>
+              <div>
+                <label class="tp-lbl">Move to Lesson</label>
+                <select class="tp-sel" id="TP_EDIT_LESSON">
+                  <option value="">— keep —</option>
+                </select>
+              </div>
+            </div>
+            <div class="tp-row" style="gap:8px;margin-top:4px;">
+              <button class="tp-add-btn" onclick="tpApplyEdit()">✓ Apply</button>
+              <button class="tp-add-btn" style="background:#fff;color:var(--mid);border:1px solid rgba(30,58,95,.12);" onclick="tpCancelEdit()">Cancel</button>
+            </div>
+            <div class="tp-fb" id="TP_EDIT_FB"></div>
+          </div>
+          <div class="sm-count" id="TP_LIST_COUNT"></div>
           <div id="TP_LIST"></div>
         </div>
       </div>
@@ -1530,7 +1576,7 @@ function tpTab(t) {
   document.getElementById('TP_TAB_LIST').classList.toggle('active', t === 'list');
   document.getElementById('TP_BODY_ADD').style.display  = t === 'add'  ? '' : 'none';
   document.getElementById('TP_BODY_LIST').style.display = t === 'list' ? '' : 'none';
-  if (t === 'list') tpBuildList();
+  if (t === 'list') { tpBuildList(); }
 }
 
 function tpBuildBooks() {
@@ -1622,21 +1668,131 @@ function tpAddCards() {
 }
 
 function tpBuildList() {
-  var q   = (document.getElementById('TP_SEARCH').value || '').toLowerCase();
-  var el  = document.getElementById('TP_LIST');
-  var filtered = allCards.filter(c =>
-    !q || (c.w||'').toLowerCase().includes(q) || (c.t||'').toLowerCase().includes(q)
-  );
-  if (!filtered.length) { el.innerHTML = '<div style="color:var(--mid);font-size:13px;padding:16px 0;">No cards found.</div>'; return; }
-  el.innerHTML = filtered.map((c, i) => `
-    <div class="tp-list-item">
-      <div>
-        <div class="tp-list-word">${c.w}</div>
-        <div style="font-size:12px;color:var(--mid);">${c.t} ${c.p ? '· '+c.p : ''}</div>
-      </div>
-      <div class="tp-list-meta">${c.book||''} ${c.lesson ? 'L'+c.lesson : ''}</div>
-      <button class="tp-list-del" onclick="tpDelCard(${allCards.indexOf(c)})">✕</button>
-    </div>`).join('');
+  var q      = (document.getElementById('TP_SEARCH').value || '').toLowerCase();
+  var fbook  = (document.getElementById('TP_FBOOK')   ? document.getElementById('TP_FBOOK').value   : '');
+  var fles   = (document.getElementById('TP_FLESSON') ? document.getElementById('TP_FLESSON').value : '');
+  var el     = document.getElementById('TP_LIST');
+  var cnt    = document.getElementById('TP_LIST_COUNT');
+
+  // Fill book filter
+  var fb = document.getElementById('TP_FBOOK');
+  if (fb) {
+    var prevBook = fb.value;
+    fb.innerHTML = '<option value="">All books</option>' + BOOKS.map(b => '<option value="'+b+'">'+b+'</option>').join('');
+    if (prevBook) fb.value = prevBook;
+    fbook = fb.value;
+  }
+
+  // Fill lesson filter based on selected book
+  var fl = document.getElementById('TP_FLESSON');
+  if (fl) {
+    var prevLes = fl.value;
+    var lessons = fbook
+      ? [...new Set(allCards.filter(c => c.book === fbook).map(c => c.lesson).filter(Boolean))].sort((a,b)=>a-b)
+      : [...new Set(allCards.map(c => c.lesson).filter(Boolean))].sort((a,b)=>a-b);
+    fl.innerHTML = '<option value="">All lessons</option>' + lessons.map(n => '<option value="'+n+'">L'+n+'</option>').join('');
+    if (prevLes) fl.value = prevLes;
+    fles = fl.value;
+  }
+
+  var filtered = allCards.map((c,i) => ({c,i})).filter(function({c}) {
+    if (fbook && c.book !== fbook) return false;
+    if (fles  && String(c.lesson) !== String(fles)) return false;
+    if (q && !(c.w||'').toLowerCase().includes(q) && !(c.t||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if (cnt) cnt.textContent = filtered.length + ' card' + (filtered.length !== 1 ? 's' : '');
+  document.getElementById('TP_SELECT_ALL').checked = false;
+  tpUpdateBulkBtns();
+
+  if (!filtered.length) {
+    el.innerHTML = '<div style="color:var(--mid);font-size:13px;padding:16px 0;">No cards found.</div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map(function({c,i}) {
+    return '<div class="tp-list-item" id="tp-item-'+i+'">' +
+      '<input type="checkbox" class="tp-list-check" data-idx="'+i+'" onchange="tpOnCheck()" />' +
+      '<div style="flex:1;">' +
+        '<div class="tp-list-word">'+c.w+'</div>' +
+        '<div style="font-size:11px;color:var(--mid);">'+(c.t||'')+' '+(c.p ? '· '+c.p : '')+'</div>' +
+      '</div>' +
+      '<div class="tp-list-meta">'+(c.book||'')+' '+(c.lesson ? 'L'+c.lesson : '')+'</div>' +
+      '<button class="tp-list-del" onclick="tpDelCard('+i+')">✕</button>' +
+    '</div>';
+  }).join('');
+}
+
+function tpOnCheck() {
+  tpUpdateBulkBtns();
+  var checks = document.querySelectorAll('#TP_LIST .tp-list-check');
+  var all    = [...checks].every(c => c.checked);
+  document.getElementById('TP_SELECT_ALL').checked = all;
+}
+
+var tpSelected = new Set();
+
+function tpSelectAll(checked) {
+  document.querySelectorAll('#TP_LIST .tp-list-check').forEach(function(c){ c.checked = checked; });
+  tpUpdateBulkBtns();
+}
+
+function tpGetSelected() {
+  return [...document.querySelectorAll('#TP_LIST .tp-list-check:checked')].map(function(c){ return parseInt(c.dataset.idx); });
+}
+
+function tpUpdateBulkBtns() {
+  var n    = tpGetSelected().length;
+  var del  = document.getElementById('TP_DEL_SEL');
+  var edit = document.getElementById('TP_EDIT_SEL');
+  var cnt  = document.getElementById('TP_SEL_COUNT');
+  if (del)  del.style.display  = n > 0 ? '' : 'none';
+  if (edit) edit.style.display = n > 0 ? '' : 'none';
+  if (cnt)  cnt.textContent    = n > 0 ? n + ' selected' : '';
+}
+
+function tpDeleteSelected() {
+  var idxs = tpGetSelected();
+  if (!idxs.length) return;
+  if (!confirm('Delete ' + idxs.length + ' card' + (idxs.length > 1 ? 's' : '') + '?')) return;
+  // Remove from highest index to avoid shifting
+  idxs.sort((a,b) => b-a).forEach(function(i){ allCards.splice(i,1); });
+  saveCards();
+  tpBuildList();
+  fcRenderBooks();
+}
+
+function tpEditSelected() {
+  var panel = document.getElementById('TP_EDIT_PANEL');
+  panel.style.display = 'block';
+  // Fill book select in edit panel
+  var eb = document.getElementById('TP_EDIT_BOOK');
+  eb.innerHTML = '<option value="">— keep —</option>' + BOOKS.map(b => '<option value="'+b+'">'+b+'</option>').join('');
+  // Fill lesson select
+  var el2 = document.getElementById('TP_EDIT_LESSON');
+  el2.innerHTML = '<option value="">— keep —</option>' + Array.from({length:20},(_,i)=>i+1).map(n => '<option value="'+n+'">'+n+'</option>').join('');
+}
+
+function tpApplyEdit() {
+  var idxs   = tpGetSelected();
+  var newBook = document.getElementById('TP_EDIT_BOOK').value;
+  var newLes  = document.getElementById('TP_EDIT_LESSON').value;
+  var fb      = document.getElementById('TP_EDIT_FB');
+  if (!newBook && !newLes) { fb.className='tp-fb err'; fb.textContent='Choose book or lesson to change.'; return; }
+  idxs.forEach(function(i){
+    if (newBook) allCards[i].book   = newBook;
+    if (newLes)  allCards[i].lesson = parseInt(newLes);
+  });
+  saveCards();
+  fb.className = 'tp-fb ok';
+  fb.textContent = '✓ ' + idxs.length + ' card' + (idxs.length>1?'s':'') + ' updated';
+  setTimeout(function(){ tpCancelEdit(); tpBuildList(); }, 1200);
+}
+
+function tpCancelEdit() {
+  document.getElementById('TP_EDIT_PANEL').style.display = 'none';
+  document.getElementById('TP_EDIT_FB').className = 'tp-fb';
 }
 
 function tpDelCard(i) {
