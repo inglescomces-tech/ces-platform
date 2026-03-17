@@ -2331,8 +2331,9 @@ const esc = s => String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replac
 const DEFAULT_BOOKS = ["A1","A1+","A2","A2+","B1","B1+","C1","C1+"];
 
 function saveBooks(){
+  window.BOOKS = BOOKS;
   try{ localStorage.setItem("ces_books_v2", JSON.stringify(BOOKS)); }catch(e){}
-  try{ window.storage && window.storage.set("ces_books_v2", JSON.stringify(BOOKS), true); }catch(e){}
+  try{ window.cesSyncFlashcardsNow && window.cesSyncFlashcardsNow(); }catch(e){}
   try{ window.cesSyncFlashcardsNow && window.cesSyncFlashcardsNow(); }catch(e){}
 }
 function loadBooks(){
@@ -2364,6 +2365,7 @@ function buildBookGrid(){
       const hasCards=allCards.some(c=>c.book===b);
       if(hasCards && !confirm("Book \""+b+"\" has "+allCards.filter(c=>c.book===b).length+" cards. Remove it from the list? (Cards keep their book tag)")){return;}
       BOOKS=BOOKS.filter(x=>x!==b);
+      window.BOOKS = BOOKS;  // sync
       if(selBook===b) selBook=null;
       buildBookGrid(); buildAllBookSelects(); saveBooks();
     };
@@ -2385,6 +2387,7 @@ $("BTN_ADD_BOOK").onclick=()=>{
   if(!val) return;
   if(BOOKS.includes(val)){ $("BOOK_INPUT").style.borderColor="var(--wine)"; setTimeout(()=>$("BOOK_INPUT").style.borderColor="",800); return; }
   BOOKS.push(val);
+  window.BOOKS = BOOKS;
   $("BOOK_INPUT").value="";
   buildBookGrid(); buildAllBookSelects(); saveBooks();
 };
@@ -5151,16 +5154,19 @@ setTimeout(async ()=>{
         if(typeof buildList        === "function") buildList();
         if(typeof sbmBuildBooks    === "function") sbmBuildBooks();
         console.log("CES: Live flashcards updated", data.items.length, "cards");
-        if(window.cesDebug) window.cesDebug("🔴 Live update: "+data.items.length+" cards!");
+        if(window.cesDebug) window.cesDebug("🃏 Cards: "+data.items.length+" | Books: "+(typeof BOOKS!=="undefined"?BOOKS.join(","):"?"));
       }
     });
     cesWatchSharedDoc("flashcards", "books", function(data){
       if(data && Array.isArray(data.items) && data.items.length > 0){
-        if(typeof BOOKS !== "undefined") BOOKS.splice(0, BOOKS.length, ...data.items);
+        // Update BOTH global and local BOOKS
         window.BOOKS = data.items;
+        if(typeof BOOKS !== "undefined") BOOKS.splice(0, BOOKS.length, ...data.items);
         try{ localStorage.setItem("ces_books_v2", JSON.stringify(data.items)); }catch(e){}
+        if(window.cesDebug) window.cesDebug("📚 Books: "+data.items.join(", "));
         if(typeof buildBookGrid === "function") buildBookGrid();
         if(typeof buildAllBookSelects === "function") buildAllBookSelects();
+        if(typeof updateRangeSelects === "function") updateRangeSelects();
       }
     });
     cesWatchSharedDoc("students", "shared", function(data){
