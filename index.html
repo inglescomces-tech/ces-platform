@@ -387,6 +387,118 @@ body {
   .fc-scene { height: 240px; }
   .home-logo { font-size: 54px; }
 }
+
+/* ── SENTENCE BUILDER ── */
+.sb-wrap { width: 100%; max-width: var(--w); }
+.sb-header {
+  background: var(--navy); border-radius: 20px;
+  padding: 15px 20px; display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 14px;
+  box-shadow: 0 8px 32px rgba(30,58,95,.15);
+}
+.sb-title  { font-family: "Playfair Display", serif; font-size: 15px; font-weight: 700; color: rgba(200,208,220,.85); }
+.sb-home   { background: none; border: 1px solid rgba(255,255,255,.15); color: rgba(255,255,255,.6); padding: 6px 14px; border-radius: 8px; font-family: "DM Sans", sans-serif; font-size: 11px; font-weight: 600; cursor: pointer; transition: .15s; }
+.sb-home:hover { background: rgba(255,255,255,.1); }
+.sb-teacher-btn { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); color: rgba(255,255,255,.45); padding: 6px 14px; border-radius: 8px; font-family: "DM Sans", sans-serif; font-size: 10px; font-weight: 600; cursor: pointer; letter-spacing: .5px; }
+.sb-teacher-btn.on { background: rgba(196,154,60,.2); border-color: rgba(196,154,60,.4); color: rgba(196,154,60,.85); }
+
+/* Selector */
+.sb-selector { background: #fff; border-radius: 18px; padding: 18px 18px 14px; border: 1px solid rgba(30,58,95,.05); margin-bottom: 12px; box-shadow: 0 1px 8px rgba(30,58,95,.04); }
+
+/* Progress */
+.sb-prog-wrap { background: #fff; border-radius: 14px; padding: 12px 16px; border: 1px solid rgba(30,58,95,.05); margin-bottom: 12px; display: none; }
+.sb-prog-wrap.show { display: block; }
+.sb-prog-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.sb-prog-lbl { font-size: 11px; color: rgba(122,130,153,.6); }
+.sb-prog-scores { display: flex; gap: 10px; }
+.sb-score { font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px; }
+.sb-score.ok  { background: rgba(46,125,69,.08); color: rgba(46,125,69,.8); }
+.sb-score.err { background: rgba(122,32,32,.06); color: rgba(122,32,32,.7); }
+.sb-prog-bar { height: 3px; background: rgba(30,58,95,.06); border-radius: 3px; }
+.sb-prog-fill { height: 100%; background: var(--navy); border-radius: 3px; width: 0%; transition: width .4s; }
+
+/* Game card */
+.sb-card { background: #fff; border-radius: 20px; padding: 22px 20px; border: 1px solid rgba(30,58,95,.05); margin-bottom: 12px; box-shadow: 0 1px 8px rgba(30,58,95,.04); display: none; }
+.sb-card.show { display: block; }
+.sb-meta { display: flex; gap: 6px; margin-bottom: 14px; }
+.sb-meta-pill { font-size: 9px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; background: rgba(30,58,95,.06); color: rgba(30,58,95,.45); padding: 3px 10px; border-radius: 20px; }
+.sb-translation { font-family: "Playfair Display", serif; font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 6px; line-height: 1.3; }
+.sb-keyword { font-size: 11px; color: rgba(122,130,153,.55); margin-bottom: 18px; letter-spacing: .3px; }
+
+/* Answer zone */
+.sb-answer-lbl { font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(122,130,153,.5); margin-bottom: 8px; display: block; }
+.sb-answer-zone {
+  min-height: 52px; border-radius: 12px;
+  border: 1.5px dashed rgba(30,58,95,.12);
+  background: rgba(30,58,95,.02);
+  padding: 10px 12px; display: flex;
+  flex-wrap: wrap; gap: 6px; align-items: center;
+  margin-bottom: 14px; transition: .2s;
+}
+.sb-answer-zone.correct { border-color: rgba(46,125,69,.3); background: rgba(46,125,69,.03); }
+.sb-answer-zone.wrong   { border-color: rgba(122,32,32,.25); background: rgba(122,32,32,.02); }
+.sb-answer-ph { font-size: 12px; color: rgba(122,130,153,.35); font-style: italic; }
+
+/* Word tiles */
+.sb-tile {
+  padding: 7px 13px; border-radius: 8px;
+  border: 1px solid rgba(30,58,95,.1);
+  background: #fff; font-family: "DM Sans", sans-serif;
+  font-size: 13px; font-weight: 500; color: var(--navy);
+  cursor: pointer; transition: .15s; user-select: none;
+}
+.sb-tile:hover { border-color: rgba(30,58,95,.25); background: #f5f6f9; }
+.sb-tile.placed { background: var(--navy); color: rgba(255,255,255,.85); border-color: var(--navy); }
+.sb-tile.placed:hover { background: #2a4f7c; }
+.sb-tile.correct { background: rgba(46,125,69,.1); color: rgba(46,125,69,.9); border-color: rgba(46,125,69,.25); cursor: default; }
+.sb-tile.wrong   { background: rgba(122,32,32,.08); color: rgba(122,32,32,.8); border-color: rgba(122,32,32,.2); cursor: default; }
+.sb-tile.locked  { cursor: default; opacity: .7; }
+
+.sb-bank-lbl { font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: rgba(122,130,153,.5); margin-bottom: 8px; display: block; }
+.sb-bank { display: flex; flex-wrap: wrap; gap: 6px; min-height: 44px; }
+
+/* Feedback */
+.sb-feedback { padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 500; margin-top: 12px; display: none; line-height: 1.5; }
+.sb-feedback.ok   { background: rgba(46,125,69,.07); color: rgba(46,125,69,.85); display: block; }
+.sb-feedback.err  { background: rgba(122,32,32,.06); color: rgba(122,32,32,.8); display: block; }
+.sb-feedback.skip { background: rgba(196,154,60,.07); color: rgba(130,100,0,.75); display: block; }
+.sb-reveal { font-family: "Playfair Display", serif; font-size: 14px; margin-top: 5px; color: var(--navy); font-weight: 400; }
+
+/* Actions */
+.sb-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+.sb-btn { padding: 9px 18px; border-radius: 10px; font-family: "DM Sans", sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: .15s; border: none; }
+.sb-btn-check { background: var(--navy); color: #fff; }
+.sb-btn-check:hover { background: #2a4f7c; }
+.sb-btn-check:disabled { opacity: .35; cursor: default; }
+.sb-btn-skip  { background: #f5f6f9; color: rgba(30,58,95,.5); border: 1px solid rgba(30,58,95,.1); }
+.sb-btn-clear { background: #f5f6f9; color: rgba(30,58,95,.5); border: 1px solid rgba(30,58,95,.1); }
+.sb-btn-nav   { background: #fff; color: rgba(30,58,95,.55); border: 1px solid rgba(30,58,95,.1); padding: 9px 14px; }
+.sb-btn-nav:disabled { opacity: .3; cursor: default; }
+.sb-nav-count { font-size: 11px; color: rgba(122,130,153,.55); margin: 0 2px; }
+
+/* End screen */
+.sb-end { background: #fff; border-radius: 20px; padding: 36px 24px; text-align: center; border: 1px solid rgba(30,58,95,.05); display: none; }
+.sb-end.show { display: block; }
+.sb-end-emoji { font-size: 44px; margin-bottom: 12px; }
+.sb-end-title { font-family: "Playfair Display", serif; font-size: 24px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+.sb-end-sub   { font-size: 13px; color: rgba(122,130,153,.65); margin-bottom: 24px; }
+.sb-end-stats { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 24px; }
+.sb-end-stat  { background: #f5f6f9; border-radius: 12px; padding: 12px 18px; text-align: center; }
+.sb-end-n     { font-family: "Playfair Display", serif; font-size: 26px; font-weight: 700; color: var(--navy); }
+.sb-end-l     { font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: rgba(122,130,153,.6); margin-top: 2px; }
+.sb-end-btns  { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+
+/* Empty */
+.sb-empty { text-align: center; padding: 48px 20px; display: none; }
+.sb-empty.show { display: block; }
+.sb-empty-icon  { font-size: 36px; margin-bottom: 12px; opacity: .5; }
+.sb-empty-title { font-family: "Playfair Display", serif; font-size: 20px; color: var(--navy); margin-bottom: 8px; }
+.sb-empty-text  { font-size: 13px; color: rgba(122,130,153,.65); line-height: 1.6; }
+
+/* SB Teacher panel — same style as FC */
+.sbt-panel { background: #fff; border-radius: 16px; padding: 0; border: 1px solid rgba(30,58,95,.06); margin-bottom: 12px; overflow: hidden; display: none; }
+.sbt-panel.open { display: block; }
+
 </style>
 </head>
 <body>
@@ -451,11 +563,11 @@ body {
       <div class="act-title">Flashcards</div>
       <div class="act-desc">Flip cards by book and lesson. Study vocabulary at your own pace.</div>
     </div>
-    <div class="act-card locked">
-      <span class="act-badge ab-soon">Soon</span>
+    <div class="act-card" id="ACT_SB">
+      <span class="act-badge ab-live">Live</span>
       <div class="act-icon">🧩</div>
       <div class="act-title">Sentence Builder</div>
-      <div class="act-desc">Unscramble words to build correct sentences.</div>
+      <div class="act-desc">Unscramble words to build correct sentences. Practise grammar in context.</div>
     </div>
   </div>
 <div class="ces-footer"><strong>CES</strong> · Educational Platform by Diego Bandeira · © 2026</div>
@@ -792,6 +904,10 @@ document.getElementById('ACT_FC').onclick = () => {
   if (!canAccess()) { document.getElementById('HOME_STUDENT_BTN').click(); return; }
   openPage('PAGE_FC');
 };
+document.getElementById('ACT_SB').onclick = () => {
+  if (!canAccess()) { document.getElementById('HOME_STUDENT_BTN').click(); return; }
+  openPage('PAGE_SB');
+};
 
 // ═══════════════════════════════════════════
 // FIREBASE DATA — LIVE LISTENERS
@@ -1097,7 +1213,7 @@ function tpFillLessons() {
   var sel  = document.getElementById('TP_LESSON');
   var prev = parseInt(sel.value);
   sel.innerHTML = Array.from({length:20},(_,i)=>i+1)
-    .map(n => '<option value="'+n+'">'+ n + (has.has(n) ? '' : ' ✦') +'</option>').join('');
+    .map(n => '<option value="'+n+'">'+ n +'</option>').join('');
   if (prev >= 1 && prev <= 20) sel.value = prev;
 }
 
@@ -1253,6 +1369,515 @@ function smBuildList() {
     </div>`).join('');
 }
 
+
+// ═══════════════════════════════════════════
+// SENTENCE BUILDER
+// ═══════════════════════════════════════════
+const SB_COL = 'sentenceBuilder';
+let sbSentences = [];   // all sentences from Firebase
+let sbQueue     = [];   // current game queue
+let sbIdx       = 0;
+let sbBook      = null;
+let sbLessons   = new Set();
+let sbLesMode   = 'range';
+let sbRangeFrom = null;
+let sbRangeTo   = null;
+
+// Live listener
+whenFirebaseReady(function() {
+  window.CES.watch(SB_COL, 'sentences', function(data) {
+    if (data && Array.isArray(data.items)) {
+      sbSentences = data.items;
+      sbRenderBooks();
+      sbUpdateCount();
+      sbtBuildBooks();
+      console.log('CES: SB sentences updated', sbSentences.length);
+    }
+  });
+});
+
+async function sbSave() {
+  return await window.CES.set(SB_COL, 'sentences', { items: sbSentences, updatedAt: Date.now() });
+}
+
+// ── SELECTOR ──
+function sbRenderBooks() {
+  var row = document.getElementById('SB_BOOKS');
+  if (!row) return;
+  row.innerHTML = '';
+  var books = [...new Set(sbSentences.map(s => s.book).filter(Boolean))].sort();
+  var all = document.createElement('button');
+  all.className = 'book-pill' + (!sbBook ? ' active' : '');
+  all.textContent = 'All';
+  all.onclick = () => { sbBook = null; sbLessons.clear(); sbRenderBooks(); sbUpdateCount(); };
+  row.appendChild(all);
+  books.forEach(b => {
+    var btn = document.createElement('button');
+    btn.className = 'book-pill' + (sbBook === b ? ' active' : '');
+    btn.textContent = b;
+    btn.onclick = () => { sbBook = sbBook === b ? null : b; sbLessons.clear(); sbRenderBooks(); sbRenderLessons(); sbUpdateCount(); };
+    row.appendChild(btn);
+  });
+  sbRenderLessons();
+}
+
+function sbRenderLessons() {
+  var sec = document.getElementById('SB_LES_SECTION');
+  if (!sbBook) { sec.style.display = 'none'; return; }
+  sec.style.display = '';
+  var lessons = [...new Set(sbSentences.filter(s => s.book === sbBook).map(s => s.lesson).filter(Boolean))].sort((a,b) => a-b);
+  var opts = '<option value="">—</option>' + lessons.map(n => '<option value="'+n+'">L'+n+'</option>').join('');
+  document.getElementById('SB_FROM').innerHTML = opts;
+  document.getElementById('SB_TO').innerHTML   = opts;
+  sbUpdateRange();
+  var grid = document.getElementById('SB_LESSONS');
+  grid.innerHTML = '';
+  lessons.forEach(n => {
+    var ch = document.createElement('button');
+    ch.className = 'lesson-chip' + (sbLessons.has(n) ? ' active' : '');
+    ch.textContent = n;
+    ch.onclick = () => { sbLessons.has(n) ? sbLessons.delete(n) : sbLessons.add(n); sbRenderLessons(); sbUpdateCount(); };
+    grid.appendChild(ch);
+  });
+}
+
+function sbSetMode(m) {
+  sbLesMode = m;
+  document.getElementById('SB_MODE_RANGE').classList.toggle('active', m === 'range');
+  document.getElementById('SB_MODE_PICK').classList.toggle('active',  m === 'pick');
+  document.getElementById('SB_RANGE_AREA').style.display = m === 'range' ? '' : 'none';
+  document.getElementById('SB_PICK_AREA').style.display  = m === 'pick'  ? '' : 'none';
+  sbLessons.clear(); sbUpdateCount();
+}
+function sbUpdateRange() {
+  sbRangeFrom = parseInt(document.getElementById('SB_FROM').value) || null;
+  sbRangeTo   = parseInt(document.getElementById('SB_TO').value)   || null;
+  var prev = document.getElementById('SB_RANGE_PREV');
+  if (!sbRangeFrom && !sbRangeTo) { prev.textContent = 'All lessons'; }
+  else {
+    var min = Math.min(sbRangeFrom||1, sbRangeTo||20), max = Math.max(sbRangeFrom||1, sbRangeTo||20);
+    var cnt = sbSentences.filter(s => s.book === sbBook && s.lesson >= min && s.lesson <= max).length;
+    prev.textContent = 'L' + min + ' → L' + max + ' · ' + cnt + ' sentences';
+  }
+  sbUpdateCount();
+}
+function sbRangeAll() {
+  document.getElementById('SB_FROM').value = '';
+  document.getElementById('SB_TO').value   = '';
+  sbRangeFrom = null; sbRangeTo = null;
+  document.getElementById('SB_RANGE_PREV').textContent = 'All lessons';
+  sbUpdateCount();
+}
+function sbFilter(s) {
+  if (sbBook && s.book !== sbBook) return false;
+  if (!sbBook) return true;
+  if (sbLesMode === 'pick') {
+    if (sbLessons.size > 0 && !sbLessons.has(s.lesson)) return false;
+  } else {
+    if (sbRangeFrom || sbRangeTo) {
+      var min = Math.min(sbRangeFrom||1, sbRangeTo||20), max = Math.max(sbRangeFrom||1, sbRangeTo||20);
+      if (!s.lesson || s.lesson < min || s.lesson > max) return false;
+    }
+  }
+  return true;
+}
+function sbUpdateCount() {
+  var n = sbSentences.filter(s => sbFilter(s)).length;
+  document.getElementById('SB_COUNT').textContent = n + ' sentence' + (n !== 1 ? 's' : '');
+}
+
+// ── GAME ──
+function shuffle(arr) { return [...arr].sort(() => Math.random() - .5); }
+
+function sbStudy() {
+  var filtered = sbSentences.filter(s => sbFilter(s));
+  if (!filtered.length) { alert('No sentences for this selection.'); return; }
+  sbQueue = filtered.map(s => ({ ...s, _state: null }));
+  sbQueue = shuffle(sbQueue);
+  sbIdx = 0;
+  document.getElementById('SB_PROG').classList.add('show');
+  document.getElementById('SB_CARD').classList.add('show');
+  document.getElementById('SB_END').classList.remove('show');
+  document.getElementById('SB_EMPTY').classList.remove('show');
+  sbRender();
+}
+
+function sbRender() {
+  var q = sbQueue[sbIdx];
+  if (!q) return;
+  // meta
+  var meta = document.getElementById('SB_META');
+  meta.innerHTML = '';
+  if (q.book)   { var p = document.createElement('span'); p.className = 'sb-meta-pill'; p.textContent = q.book; meta.appendChild(p); }
+  if (q.lesson) { var p2 = document.createElement('span'); p2.className = 'sb-meta-pill'; p2.textContent = 'L' + q.lesson; meta.appendChild(p2); }
+  document.getElementById('SB_TRANS').textContent = q.translation || q.sentence || '';
+  document.getElementById('SB_KEY').textContent   = q.keyword ? 'Key word: ' + q.keyword : '';
+  // init state
+  if (!q._state) {
+    var words = (q.sentence || '').replace(/[.!?]$/, '').split(/\s+/).filter(Boolean);
+    q._state = { placed: [], bank: shuffle(words.map((w,i) => ({ w, i }))), answered: false, correct: false, skipped: false };
+  }
+  sbRenderZone(); sbRenderBank(); sbRenderFeedback();
+  sbUpdateProgress();
+  // nav
+  document.getElementById('SB_PREV').disabled = sbIdx === 0;
+  var isLast = sbIdx === sbQueue.length - 1;
+  document.getElementById('SB_NEXT').textContent = (isLast && q._state.answered) ? 'Finish ✓' : '→';
+  document.getElementById('SB_NEXT').onclick = (isLast && q._state.answered) ? sbShowEnd : () => sbNav(1);
+  document.getElementById('SB_NAVCNT').textContent = (sbIdx + 1) + ' / ' + sbQueue.length;
+}
+
+function sbRenderZone() {
+  var q = sbQueue[sbIdx];
+  var zone = document.getElementById('SB_ZONE');
+  var ph   = document.getElementById('SB_ZONE_PH');
+  zone.innerHTML = '';
+  zone.className = 'sb-answer-zone' + (q._state.answered ? (q._state.correct ? ' correct' : q._state.skipped ? '' : ' wrong') : '');
+  if (!q._state.placed.length) {
+    zone.appendChild(ph || Object.assign(document.createElement('span'), { className: 'sb-answer-ph', textContent: 'Click words below to build…' }));
+  }
+  q._state.placed.forEach((item, pi) => {
+    var t = document.createElement('button');
+    t.className = 'sb-tile placed' + (q._state.answered ? (q._state.correct ? ' correct' : ' wrong') : '');
+    if (q._state.answered) t.className += ' locked';
+    t.textContent = item.w;
+    if (!q._state.answered) t.onclick = () => sbReturn(pi);
+    zone.appendChild(t);
+  });
+  document.getElementById('SB_CHECK').disabled = !q._state.placed.length || q._state.answered;
+}
+
+function sbRenderBank() {
+  var q    = sbQueue[sbIdx];
+  var bank = document.getElementById('SB_BANK');
+  bank.innerHTML = '';
+  q._state.bank.forEach((item, bi) => {
+    if (item === null) return;
+    var t = document.createElement('button');
+    t.className = 'sb-tile' + (q._state.answered ? ' locked' : '');
+    t.textContent = item.w;
+    if (!q._state.answered) t.onclick = () => sbPlace(bi);
+    bank.appendChild(t);
+  });
+}
+
+function sbRenderFeedback() {
+  var q  = sbQueue[sbIdx];
+  var fb = document.getElementById('SB_FB');
+  document.getElementById('SB_CHECK').style.display = q._state.answered ? 'none' : '';
+  document.getElementById('SB_SKIP').style.display  = q._state.answered ? 'none' : '';
+  if (!q._state.answered) { fb.className = 'sb-feedback'; return; }
+  if (q._state.skipped) {
+    fb.className = 'sb-feedback skip';
+    document.getElementById('SB_FB_TXT').textContent = 'Skipped —';
+    document.getElementById('SB_REVEAL').textContent = q.sentence;
+  } else if (q._state.correct) {
+    fb.className = 'sb-feedback ok';
+    document.getElementById('SB_FB_TXT').textContent = '✓ Correct!';
+    document.getElementById('SB_REVEAL').textContent = '';
+  } else {
+    fb.className = 'sb-feedback err';
+    document.getElementById('SB_FB_TXT').textContent = '✗ Not quite —';
+    document.getElementById('SB_REVEAL').textContent = q.sentence;
+  }
+}
+
+function sbPlace(bi) {
+  var q = sbQueue[sbIdx]; if (q._state.answered) return;
+  var item = q._state.bank[bi]; if (!item) return;
+  q._state.placed.push({ ...item, bi });
+  q._state.bank[bi] = null;
+  sbRenderZone(); sbRenderBank();
+}
+function sbReturn(pi) {
+  var q = sbQueue[sbIdx]; if (q._state.answered) return;
+  var item = q._state.placed[pi];
+  q._state.bank[item.bi] = { w: item.w, i: item.i };
+  q._state.placed.splice(pi, 1);
+  sbRenderZone(); sbRenderBank();
+}
+function sbClearAns() {
+  var q = sbQueue[sbIdx]; if (q._state.answered) return;
+  var words = (q.sentence || '').replace(/[.!?]$/, '').split(/\s+/).filter(Boolean);
+  q._state.placed = []; q._state.bank = shuffle(words.map((w,i) => ({ w, i })));
+  sbRenderZone(); sbRenderBank();
+}
+
+function sbCheck() {
+  var q = sbQueue[sbIdx]; if (q._state.answered) return;
+  var answer = q._state.placed.map(p => p.w).join(' ');
+  var norm = s => s.toLowerCase().replace(/[^a-z0-9\s]/g,'').trim().replace(/\s+/g,' ');
+  q._state.answered = true;
+  q._state.correct  = norm(answer) === norm(q.sentence || '');
+  cesBeep(q._state.correct ? 'correct' : 'wrong');
+  sbRenderZone(); sbRenderBank(); sbRenderFeedback();
+  sbUpdateProgress();
+  // update next button
+  var isLast = sbIdx === sbQueue.length - 1;
+  if (isLast) { document.getElementById('SB_NEXT').textContent = 'Finish ✓'; document.getElementById('SB_NEXT').onclick = sbShowEnd; }
+}
+
+function sbSkip() {
+  var q = sbQueue[sbIdx]; if (q._state.answered) return;
+  q._state.answered = true; q._state.skipped = true; q._state.correct = false;
+  cesBeep('skip');
+  sbRenderZone(); sbRenderBank(); sbRenderFeedback(); sbUpdateProgress();
+}
+
+function sbNav(dir) {
+  var next = sbIdx + dir;
+  if (next < 0 || next >= sbQueue.length) return;
+  sbIdx = next; sbRender(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function sbUpdateProgress() {
+  var done = sbQueue.filter(q => q._state && q._state.answered).length;
+  var ok   = sbQueue.filter(q => q._state && q._state.correct).length;
+  var err  = sbQueue.filter(q => q._state && q._state.answered && !q._state.correct && !q._state.skipped).length;
+  var pct  = sbQueue.length ? Math.round(done / sbQueue.length * 100) : 0;
+  document.getElementById('SB_PFILL').style.width   = pct + '%';
+  document.getElementById('SB_PROG_LBL').textContent = (sbIdx + 1) + ' / ' + sbQueue.length;
+  document.getElementById('SB_OK').textContent  = '✓ ' + ok;
+  document.getElementById('SB_ERR').textContent = '✗ ' + err;
+}
+
+function sbReset() {
+  sbQueue.forEach(q => q._state = null); sbIdx = 0;
+  document.getElementById('SB_END').classList.remove('show');
+  sbRender();
+}
+function sbRestart() {
+  sbQueue = shuffle(sbQueue.map(q => ({ ...q, _state: null }))); sbIdx = 0;
+  document.getElementById('SB_END').classList.remove('show');
+  document.getElementById('SB_CARD').classList.add('show');
+  document.getElementById('SB_PROG').classList.add('show');
+  sbRender();
+}
+
+function sbShowEnd() {
+  document.getElementById('SB_CARD').classList.remove('show');
+  document.getElementById('SB_PROG').classList.remove('show');
+  var total = sbQueue.length;
+  var ok    = sbQueue.filter(q => q._state && q._state.correct).length;
+  var err   = sbQueue.filter(q => q._state && q._state.answered && !q._state.correct && !q._state.skipped).length;
+  var skip  = sbQueue.filter(q => q._state && q._state.skipped).length;
+  var pct   = total ? Math.round(ok / total * 100) : 0;
+  document.getElementById('SB_EMOJI').textContent  = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '💪' : '📚';
+  document.getElementById('SB_ETITLE').textContent = pct >= 90 ? 'Excellent!' : pct >= 70 ? 'Great job!' : pct >= 50 ? 'Good effort!' : 'Keep practising!';
+  document.getElementById('SB_ESUB').textContent   = ok + ' correct out of ' + total + ' · ' + pct + '% score';
+  document.getElementById('SB_EOK').textContent    = ok;
+  document.getElementById('SB_EERR').textContent   = err;
+  document.getElementById('SB_ESKIP').textContent  = skip;
+  document.getElementById('SB_EPCT').textContent   = pct + '%';
+  document.getElementById('SB_END').classList.add('show');
+  cesBeep(pct >= 70 ? 'win' : 'skip');
+}
+
+function sbClear() {
+  sbBook = null; sbLessons.clear();
+  document.getElementById('SB_CARD').classList.remove('show');
+  document.getElementById('SB_PROG').classList.remove('show');
+  document.getElementById('SB_END').classList.remove('show');
+  sbRenderBooks(); sbUpdateCount();
+  if (!sbSentences.length) document.getElementById('SB_EMPTY').classList.add('show');
+}
+
+// ── TEACHER ──
+function sbtToggle() {
+  if (!teacherUnlocked) { document.getElementById('TEACHER_PW_OV').classList.add('open'); setTimeout(() => document.getElementById('T_PW').focus(), 60); return; }
+  var p = document.getElementById('SBT_PANEL');
+  var open = p.classList.toggle('open');
+  document.getElementById('SB_TEACHER_BTN').classList.toggle('on', open);
+  if (open) { sbtBuildBooks(); sbtBuildList(); }
+}
+function sbtClose() {
+  document.getElementById('SBT_PANEL').classList.remove('open');
+  document.getElementById('SB_TEACHER_BTN').classList.remove('on');
+}
+function sbtTab(t) {
+  document.getElementById('SBT_TAB_ADD').classList.toggle('active',  t === 'add');
+  document.getElementById('SBT_TAB_LIST').classList.toggle('active', t === 'list');
+  document.getElementById('SBT_BODY_ADD').style.display  = t === 'add'  ? '' : 'none';
+  document.getElementById('SBT_BODY_LIST').style.display = t === 'list' ? '' : 'none';
+  if (t === 'list') sbtBuildList();
+}
+function sbtBooks() {
+  return [...new Set([...BOOKS, ...sbSentences.map(s => s.book).filter(Boolean)])].sort();
+}
+function sbtBuildBooks() {
+  var books = sbtBooks();
+  var sel = document.getElementById('SBT_BOOK');
+  var prev = sel.value;
+  sel.innerHTML = books.map(b => '<option value="'+b+'">'+b+'</option>').join('');
+  if (prev && books.includes(prev)) sel.value = prev;
+  var fb = document.getElementById('SBT_FBOOK');
+  fb.innerHTML = '<option value="">All books</option>' + books.map(b => '<option value="'+b+'">'+b+'</option>').join('');
+  // Build book pills
+  var row = document.getElementById('SBT_BOOKS_ROW');
+  if (row) {
+    row.innerHTML = books.map(b => `
+      <span style="background:#f5f6f9;border:1px solid rgba(30,58,95,.1);border-radius:20px;
+        padding:4px 12px;font-size:12px;font-weight:600;color:var(--navy);
+        display:inline-flex;align-items:center;gap:6px;">
+        ${b}
+        <button onclick="sbtDelBook('${b}')" style="background:none;border:none;
+          color:rgba(122,32,32,.55);cursor:pointer;font-size:12px;padding:0;line-height:1;">✕</button>
+      </span>`).join('');
+  }
+  sbtFillLessons();
+}
+function sbtAddBook() {
+  var val = (document.getElementById('SBT_NEW_BOOK').value || '').trim().toUpperCase();
+  if (!val) return;
+  if (sbtBooks().includes(val)) { return; }
+  // Add to BOOKS (FC books) and save
+  if (!BOOKS.includes(val)) { BOOKS.push(val); saveBooks(); }
+  document.getElementById('SBT_NEW_BOOK').value = '';
+  sbtBuildBooks(); sbRenderBooks();
+}
+function sbtDelBook(b) {
+  var hasSentences = sbSentences.some(s => s.book === b);
+  if (hasSentences && !confirm('Book "'+b+'" has sentences. Delete anyway?')) return;
+  // Remove from BOOKS
+  BOOKS = BOOKS.filter(x => x !== b);
+  saveBooks();
+  // Remove sentences of this book
+  sbSentences = sbSentences.filter(s => s.book !== b);
+  sbSave();
+  sbtBuildBooks(); sbRenderBooks(); sbUpdateCount(); sbtBuildList();
+}
+function sbtFillLessons() {
+  var book = document.getElementById('SBT_BOOK').value;
+  var has  = new Set(sbSentences.filter(s => s.book === book).map(s => s.lesson).filter(Boolean));
+  var sel  = document.getElementById('SBT_LESSON');
+  var prev = parseInt(sel.value);
+  sel.innerHTML = Array.from({length:20},(_,i)=>i+1).map(n => '<option value="'+n+'">'+n+'</option>').join('');
+  if (prev >= 1 && prev <= 20) sel.value = prev;
+}
+function sbtAdd() {
+  var book   = document.getElementById('SBT_BOOK').value;
+  var lesson = parseInt(document.getElementById('SBT_LESSON').value);
+  var raw    = document.getElementById('SBT_INPUT').value.trim();
+  var fb     = document.getElementById('SBT_FB');
+  fb.className = 'tp-fb';
+  if (!book)   { fb.className='tp-fb err'; fb.textContent='Select a book.'; return; }
+  if (!lesson) { fb.className='tp-fb err'; fb.textContent='Select a lesson.'; return; }
+  if (!raw)    { fb.className='tp-fb err'; fb.textContent='Enter at least one sentence.'; return; }
+
+  var lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  var added = 0, skipped = 0;
+
+  lines.forEach(line => {
+    // Split on first comma only
+    var commaIdx = line.indexOf(',');
+    var sent  = commaIdx > 0 ? line.slice(0, commaIdx).trim() : line.trim();
+    var trans = commaIdx > 0 ? line.slice(commaIdx + 1).trim() : '';
+    if (sent.split(/\s+/).length < 2) { skipped++; return; }
+    if (sbSentences.some(s => s.book===book && s.lesson===lesson && s.sentence.toLowerCase()===sent.toLowerCase())) {
+      skipped++; return;
+    }
+    sbSentences.push({ book, lesson, sentence: sent, translation: trans || sent });
+    added++;
+  });
+
+  if (!added) {
+    fb.className='tp-fb err';
+    fb.textContent = skipped ? 'All lines already exist or are too short.' : 'Nothing added.';
+    return;
+  }
+
+  sbSave().then(() => {
+    document.getElementById('SBT_INPUT').value = '';
+    fb.className = 'tp-fb ok';
+    fb.textContent = '✓ ' + added + ' sentence' + (added>1?'s':'') + ' added to ' + book + ' L' + lesson + (skipped?' ('+skipped+' skipped)':'');
+    setTimeout(() => { fb.className = 'tp-fb'; }, 3000);
+    sbtBuildList(); sbRenderBooks(); sbUpdateCount();
+  });
+}
+function sbtBuildList() {
+  var q    = (document.getElementById('SBT_Q').value || '').toLowerCase();
+  var book = document.getElementById('SBT_FBOOK').value;
+  var el   = document.getElementById('SBT_LIST');
+  var cnt  = document.getElementById('SBT_COUNT');
+  var rows = sbSentences.map((s,i) => ({s,i})).filter(({s}) => {
+    if (book && s.book !== book) return false;
+    if (q && !s.sentence.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  cnt.textContent = rows.length + ' sentence' + (rows.length !== 1 ? 's' : '');
+  if (!rows.length) { el.innerHTML = '<div class="sm-empty">No sentences yet.</div>'; return; }
+  el.innerHTML = rows.map(({s,i}) => `
+    <div class="tp-list-item">
+      <div style="flex:1;">
+        <div class="tp-list-word" style="font-size:13px;">${s.sentence}</div>
+        <div class="tp-list-meta">${s.book||''} ${s.lesson?'L'+s.lesson:''}</div>
+      </div>
+      <button class="tp-list-del" onclick="sbtDel(${i})">✕</button>
+    </div>`).join('');
+}
+function sbtDel(i) {
+  if (!confirm('Delete this sentence?')) return;
+  sbSentences.splice(i, 1); sbSave(); sbtBuildList(); sbRenderBooks(); sbUpdateCount();
+}
+
+
+// ═══════════════════════════════════════════
+// SOUND EFFECTS (Web Audio API)
+// ═══════════════════════════════════════════
+function cesBeep(type) {
+  try {
+    var ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    var osc  = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    if (type === 'correct') {
+      // Soft two-note chime ✓
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523, ctx.currentTime);
+      osc.frequency.setValueAtTime(783, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.5);
+
+    } else if (type === 'wrong') {
+      // Soft low thud ✗
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(160, ctx.currentTime + 0.25);
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.35);
+
+    } else if (type === 'skip') {
+      // Neutral soft click
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(330, ctx.currentTime);
+      gain.gain.setValueAtTime(0.07, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.2);
+
+    } else if (type === 'win') {
+      // Soft 3-note fanfare
+      [0, 0.15, 0.3].forEach(function(t, i) {
+        var o2 = ctx.createOscillator();
+        var g2 = ctx.createGain();
+        o2.connect(g2); g2.connect(ctx.destination);
+        o2.type = 'sine';
+        o2.frequency.value = [523, 659, 783][i];
+        g2.gain.setValueAtTime(0.1, ctx.currentTime + t);
+        g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.4);
+        o2.start(ctx.currentTime + t);
+        o2.stop(ctx.currentTime + t + 0.4);
+      });
+    }
+  } catch(e) {}
+}
+
 // ═══════════════════════════════════════════
 // LOGOUT
 // ═══════════════════════════════════════════
@@ -1272,5 +1897,174 @@ function doLogout() {
 // ═══════════════════════════════════════════
 updateHomeUI();
 </script>
+
+<!-- ══════════════════ SENTENCE BUILDER ══════════════════ -->
+<div class="page" id="PAGE_SB">
+  <div class="sb-wrap">
+
+    <!-- Header -->
+    <div class="sb-header">
+      <button class="sb-home" onclick="goHome()">⌂ Home</button>
+      <div class="sb-title">Sentence Builder</div>
+      <button class="sb-teacher-btn" id="SB_TEACHER_BTN" onclick="sbtToggle()">Teacher</button>
+    </div>
+
+    <!-- Teacher panel -->
+    <div class="sbt-panel" id="SBT_PANEL">
+      <div class="tp-head">
+        <div class="tp-title">Manage Sentences <span class="tp-badge">Teacher Mode</span></div>
+        <button class="tp-close" onclick="sbtClose()">✕</button>
+      </div>
+      <div class="tp-body">
+        <div class="tp-tabs">
+          <div class="tp-tab active" id="SBT_TAB_ADD"  onclick="sbtTab('add')">＋ Add</div>
+          <div class="tp-tab"        id="SBT_TAB_LIST" onclick="sbtTab('list')">📋 List</div>
+        </div>
+
+        <!-- ADD -->
+        <div id="SBT_BODY_ADD">
+          <div class="tp-row">
+            <div>
+              <label class="tp-lbl">Book</label>
+              <select class="tp-sel" id="SBT_BOOK" onchange="sbtFillLessons()"></select>
+            </div>
+            <div>
+              <label class="tp-lbl">Unit</label>
+              <select class="tp-sel" id="SBT_LESSON"></select>
+            </div>
+          </div>
+          <label class="tp-lbl">Sentences <span style="font-weight:400;text-transform:none;letter-spacing:0;">— one per line</span></label>
+          <div class="tp-hint" style="margin-bottom:8px;">Format: <strong>English sentence, Portuguese translation</strong><br/>Example: She is reading a book, Ela está lendo um livro</div>
+          <textarea class="tp-ta" id="SBT_INPUT" placeholder="She is reading a book, Ela está lendo um livro&#10;He plays football every day, Ele joga futebol todos os dias&#10;We are learning English, Estamos aprendendo inglês"></textarea>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+            <button class="tp-add-btn" onclick="sbtAdd()">＋ Add</button>
+            <span class="sync-status" id="SBT_STATUS"></span>
+          </div>
+          <div class="tp-fb" id="SBT_FB"></div>
+
+          <hr class="tp-divider"/>
+          <label class="tp-lbl">Books</label>
+          <div class="tp-row" id="SBT_BOOKS_ROW"></div>
+          <div class="tp-row">
+            <input type="text" class="tp-sel" id="SBT_NEW_BOOK" placeholder="New book name" style="flex:1;"/>
+            <button class="tp-add-btn" onclick="sbtAddBook()">+ Add Book</button>
+          </div>
+        </div>
+
+        <!-- LIST -->
+        <div id="SBT_BODY_LIST" style="display:none;">
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <input class="tp-search" id="SBT_Q" placeholder="Search sentences…" oninput="sbtBuildList()" style="margin:0;"/>
+            <select class="tp-sel" id="SBT_FBOOK" onchange="sbtBuildList()">
+              <option value="">All books</option>
+            </select>
+          </div>
+          <div class="sm-count" id="SBT_COUNT"></div>
+          <div id="SBT_LIST"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selector -->
+    <div class="sb-selector">
+      <span class="sel-lbl">Book</span>
+      <div class="books-row" id="SB_BOOKS"></div>
+      <div id="SB_LES_SECTION" style="display:none;">
+        <span class="sel-lbl">Unit</span>
+        <div class="les-mode-row">
+          <button class="les-mode-btn active" id="SB_MODE_RANGE" onclick="sbSetMode('range')">Range</button>
+          <button class="les-mode-btn"        id="SB_MODE_PICK"  onclick="sbSetMode('pick')">Individual</button>
+        </div>
+        <div id="SB_RANGE_AREA">
+          <div class="les-range-row">
+            <span class="les-range-lbl">From</span>
+            <select class="les-range-sel" id="SB_FROM" onchange="sbUpdateRange()"><option value="">—</option></select>
+            <span class="les-range-lbl">to</span>
+            <select class="les-range-sel" id="SB_TO"   onchange="sbUpdateRange()"><option value="">—</option></select>
+            <button class="les-mode-btn" onclick="sbRangeAll()">All</button>
+          </div>
+          <div class="les-range-preview" id="SB_RANGE_PREV"></div>
+        </div>
+        <div id="SB_PICK_AREA" style="display:none;">
+          <div class="lessons-row" id="SB_LESSONS"></div>
+        </div>
+      </div>
+      <div class="fc-actions" style="margin-top:8px;">
+        <button class="fc-study-btn" onclick="sbStudy()">▶ Study</button>
+        <button class="fc-clear-btn" onclick="sbClear()">✕ All</button>
+        <span class="fc-count" id="SB_COUNT"></span>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="sb-prog-wrap" id="SB_PROG">
+      <div class="sb-prog-top">
+        <span class="sb-prog-lbl" id="SB_PROG_LBL">1 / 1</span>
+        <div class="sb-prog-scores">
+          <span class="sb-score ok"  id="SB_OK">✓ 0</span>
+          <span class="sb-score err" id="SB_ERR">✗ 0</span>
+        </div>
+        <button style="background:none;border:none;font-size:11px;color:rgba(122,130,153,.55);cursor:pointer;" onclick="sbReset()">↺ Reset</button>
+      </div>
+      <div class="sb-prog-bar"><div class="sb-prog-fill" id="SB_PFILL"></div></div>
+    </div>
+
+    <!-- Game card -->
+    <div class="sb-card" id="SB_CARD">
+      <div class="sb-meta" id="SB_META"></div>
+      <div class="sb-translation" id="SB_TRANS"></div>
+      <div class="sb-keyword"     id="SB_KEY"></div>
+
+      <span class="sb-answer-lbl">Build the sentence</span>
+      <div class="sb-answer-zone" id="SB_ZONE">
+        <span class="sb-answer-ph" id="SB_ZONE_PH">Click words below to build…</span>
+      </div>
+
+      <span class="sb-bank-lbl">Word bank</span>
+      <div class="sb-bank" id="SB_BANK"></div>
+
+      <div class="sb-feedback" id="SB_FB">
+        <span id="SB_FB_TXT"></span>
+        <div class="sb-reveal" id="SB_REVEAL"></div>
+      </div>
+
+      <div class="sb-actions">
+        <button class="sb-btn sb-btn-nav" id="SB_PREV" onclick="sbNav(-1)" disabled>←</button>
+        <button class="sb-btn sb-btn-check" id="SB_CHECK" onclick="sbCheck()" disabled>Check</button>
+        <button class="sb-btn sb-btn-clear" onclick="sbClearAns()">Clear</button>
+        <button class="sb-btn sb-btn-skip"  onclick="sbSkip()">Skip</button>
+        <span class="sb-nav-count" id="SB_NAVCNT"></span>
+        <button class="sb-btn sb-btn-nav" id="SB_NEXT" onclick="sbNav(1)">→</button>
+      </div>
+    </div>
+
+    <!-- End screen -->
+    <div class="sb-end" id="SB_END">
+      <div class="sb-end-emoji" id="SB_EMOJI">🎉</div>
+      <div class="sb-end-title" id="SB_ETITLE">Great job!</div>
+      <div class="sb-end-sub"   id="SB_ESUB"></div>
+      <div class="sb-end-stats">
+        <div class="sb-end-stat"><div class="sb-end-n" id="SB_EOK">0</div><div class="sb-end-l">Correct</div></div>
+        <div class="sb-end-stat"><div class="sb-end-n" id="SB_EERR">0</div><div class="sb-end-l">Wrong</div></div>
+        <div class="sb-end-stat"><div class="sb-end-n" id="SB_ESKIP">0</div><div class="sb-end-l">Skipped</div></div>
+        <div class="sb-end-stat"><div class="sb-end-n" id="SB_EPCT">—</div><div class="sb-end-l">Score</div></div>
+      </div>
+      <div class="sb-end-btns">
+        <button class="sb-btn sb-btn-check" onclick="sbRestart()">↺ Play again</button>
+        <button class="sb-btn sb-btn-skip"  onclick="sbClear(); document.getElementById('SB_END').classList.remove('show');">Change lesson</button>
+      </div>
+    </div>
+
+    <!-- Empty -->
+    <div class="sb-empty" id="SB_EMPTY">
+      <div class="sb-empty-icon">🧩</div>
+      <div class="sb-empty-title">Ready to build?</div>
+      <div class="sb-empty-text">Use <strong>☰ Teacher</strong> to add sentences,<br/>then choose a book and lesson to start.</div>
+    </div>
+
+    <div class="ces-footer"><strong>CES</strong> · Educational Platform by Diego Bandeira · © 2026</div>
+  </div>
+</div>
+
 </body>
 </html>
