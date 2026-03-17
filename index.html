@@ -1269,6 +1269,218 @@ font-family:"DM Sans",sans-serif;
   font-size:10px;font-weight:700;padding:4px 8px;cursor:pointer;
 }
 </style>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBj04p9bnOICYZjwrWAtOQRiiNpuk7jslE",
+  authDomain: "ces-platform.firebaseapp.com",
+  projectId: "ces-platform",
+  storageBucket: "ces-platform.firebasestorage.app",
+  messagingSenderId: "362566865240",
+  appId: "1:362566865240:web:df51ed10ffed2339e5552d",
+  measurementId: "G-P0MEZTRP94"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.cesFirebase = {
+  enabled: true,
+  db,
+  doc,
+  getDoc,
+  setDoc,
+  onSnapshot
+};
+if(window._cesFirebaseResolve) window._cesFirebaseResolve();
+console.log("CES Firebase connected."); if(window.cesDebug) window.cesDebug("🔥 Firebase connected!");
+</script>
+<script>
+/* CES — Firebase readiness promise */
+window.cesFirebaseReady = new Promise(function(resolve){
+  window._cesFirebaseResolve = resolve;
+});
+</script>
+<script>
+/* CES FIREBASE LIVE SYNC */
+function cesFbReady(){
+  return !!(window.cesFirebase && window.cesFirebase.enabled && window.cesFirebase.db);
+}
+async function cesSetSharedDoc(collectionName, docId, data){
+  if(!cesFbReady()){ console.warn("CES: Firebase not ready for SET", collectionName, docId); return false; }
+  try{
+    const fb = window.cesFirebase;
+    await fb.setDoc(fb.doc(fb.db, collectionName, docId), data);
+    console.log("CES: Firebase SET ok", collectionName, docId);
+    return true;
+  }catch(err){
+    console.error("CES: Firebase SET FAILED", collectionName, docId, err.code, err.message);
+    return false;
+  }
+}
+function cesWatchSharedDoc(collectionName, docId, callback){
+  if(!cesFbReady()){ console.warn("CES: Firebase not ready for WATCH", collectionName); return null; }
+  const fb = window.cesFirebase;
+  const ref = fb.doc(fb.db, collectionName, docId);
+  return fb.onSnapshot(ref, (snap) => {
+    if(snap.exists()){
+      console.log("CES: LIVE UPDATE", collectionName, docId);
+      if(window.cesDebug) window.cesDebug("🔴 LIVE: "+collectionName+"/"+docId+" updated!");
+      callback(snap.data());
+    }
+  }, (err) => {
+    console.error("CES: Watch failed", collectionName, err.code);
+  });
+}
+
+async function cesGetSharedDoc(collectionName, docId){
+  if(!cesFbReady()){ console.warn("CES: Firebase not ready for GET", collectionName, docId); if(window.cesDebug) window.cesDebug("⚠️ Firebase NOT READY for GET "+collectionName); return null; }
+  try{
+    const fb = window.cesFirebase;
+    const snap = await fb.getDoc(fb.doc(fb.db, collectionName, docId));
+    console.log("CES: Firebase GET", collectionName, docId, snap.exists()?"found":"empty"); if(window.cesDebug) window.cesDebug("GET "+collectionName+"/"+docId+" → "+(snap.exists()?"✅ found":"❌ empty"));
+    return snap.exists() ? snap.data() : null;
+  }catch(err){
+    console.error("CES: Firebase GET FAILED", collectionName, docId, err.code, err.message); if(window.cesDebug) window.cesDebug("GET FAILED "+collectionName+" → ❌ "+err.code);
+    return null;
+  }
+}
+window.cesSyncStudentsNow = async function(){
+  try{
+    const ok = await cesSetSharedDoc("students", "shared", {
+      items: studentAccessList,
+      updatedAt: Date.now()
+    });
+    return !!ok;
+  }catch(e){ console.error("cesSyncStudentsNow error:", e); return false; }
+};
+window.cesLoadStudentsNow = async function(){
+  try{
+    await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
+    const data = await cesGetSharedDoc("students", "shared");
+    if(data && Array.isArray(data.items)){
+      studentAccessList = data.items;
+      // also update localStorage as cache
+      try{ localStorage.setItem(STUDENT_ACCESS_STORAGE, JSON.stringify(studentAccessList)); }catch(e){}
+    } else {
+      gateLoadStudents(); // fallback to localStorage
+    }
+  }catch(e){ gateLoadStudents(); }
+  if(typeof window.gateRenderTeacherList === "function") window.gateRenderTeacherList();
+  return true;
+};
+window.cesSyncFlashcardsNow = async function(){
+  const books = Array.isArray(window.BOOKS) ? window.BOOKS : [];
+  const cards = Array.isArray(window.allCards) ? window.allCards : [];
+  const a = await cesSetSharedDoc("flashcards", "books", { items: books, updatedAt: Date.now() });
+  const b = await cesSetSharedDoc("flashcards", "cards", { items: cards, updatedAt: Date.now() });
+  return !!(a || b);
+};
+window.cesLoadFlashcardsNow = async function(){
+  await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
+  const booksData = await cesGetSharedDoc("flashcards", "books");
+  const cardsData = await cesGetSharedDoc("flashcards", "cards");
+  if(booksData && Array.isArray(booksData.items) && booksData.items.length > 0){
+    window.BOOKS = booksData.items;
+    if(typeof BOOKS !== "undefined") BOOKS.splice(0, BOOKS.length, ...booksData.items);
+    try{ localStorage.setItem("ces_books_v2", JSON.stringify(booksData.items)); }catch(e){}
+  }
+  if(cardsData && Array.isArray(cardsData.items) && cardsData.items.length > 0){
+    // Update the LOCAL allCards variable used by FC app
+    if(typeof allCards !== "undefined") allCards.splice(0, allCards.length, ...cardsData.items);
+    window.allCards = cardsData.items;
+    window.sbCards  = cardsData.items;
+    try{ localStorage.setItem("ces_flashcards_v2", JSON.stringify(cardsData.items)); }catch(e){}
+    // Re-render FC immediately
+    if(typeof buildBookGrid    === "function") buildBookGrid();
+    if(typeof buildLessonGrid  === "function") buildLessonGrid();
+    if(typeof updateRangeSelects === "function") updateRangeSelects();
+    if(typeof buildAllBookSelects === "function") buildAllBookSelects();
+    if(typeof applyDeck        === "function") applyDeck();
+    if(typeof buildList        === "function") buildList();
+    // Re-render SB
+    if(typeof sbmBuildBooks    === "function") sbmBuildBooks();
+    if(typeof sbmUpdateLessons === "function") sbmUpdateLessons();
+    console.log("CES: FC re-rendered with", cardsData.items.length, "cards from Firebase"); if(window.cesDebug) window.cesDebug("✅ FC loaded "+cardsData.items.length+" cards — re-rendered!");
+  }
+};
+window.cesSyncSoundSceneNow = async function(){
+  const rounds = Array.isArray(window.ssRounds) ? window.ssRounds : [];
+  return await cesSetSharedDoc("soundScene", "rounds", { items: rounds, updatedAt: Date.now() });
+};
+window.cesLoadSoundSceneNow = async function(){
+  const data = await cesGetSharedDoc("soundScene", "rounds");
+  if(data && Array.isArray(data.items)){
+    window.ssRounds = data.items;
+    try{
+      if(typeof window.ssRoundPayload === "function"){
+        localStorage.setItem("ces_ss_rounds_v1", JSON.stringify(window.ssRoundPayload(data.items)));
+      }
+    }catch(e){}
+    return true;
+  }
+  return false;
+};
+setTimeout(async ()=>{
+  try{
+    // Load students from Firebase
+    await window.cesLoadStudentsNow();
+    // Load flashcards from Firebase and re-render
+    await window.cesLoadFlashcardsNow(); // re-render is inside cesLoadFlashcardsNow
+
+    // Set up REALTIME listeners — auto-update when teacher saves from any device
+    await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
+    cesWatchSharedDoc("flashcards", "cards", function(data){
+      if(data && Array.isArray(data.items) && data.items.length > 0){
+        if(typeof allCards !== "undefined") allCards.splice(0, allCards.length, ...data.items);
+        window.allCards = data.items; window.sbCards = data.items;
+        try{ localStorage.setItem("ces_flashcards_v2", JSON.stringify(data.items)); }catch(e){}
+        if(typeof buildBookGrid    === "function") buildBookGrid();
+        if(typeof buildLessonGrid  === "function") buildLessonGrid();
+        if(typeof updateRangeSelects === "function") updateRangeSelects();
+        if(typeof buildAllBookSelects === "function") buildAllBookSelects();
+        if(typeof applyDeck        === "function") applyDeck();
+        if(typeof buildList        === "function") buildList();
+        if(typeof sbmBuildBooks    === "function") sbmBuildBooks();
+        console.log("CES: Live flashcards updated", data.items.length, "cards");
+        if(window.cesDebug) window.cesDebug("🃏 Cards: "+data.items.length+" | Books: "+(typeof BOOKS!=="undefined"?BOOKS.join(","):"?"));
+      }
+    });
+    cesWatchSharedDoc("flashcards", "books", function(data){
+      if(data && Array.isArray(data.items) && data.items.length > 0){
+        // Update BOTH global and local BOOKS
+        window.BOOKS = data.items;
+        if(typeof BOOKS !== "undefined") BOOKS.splice(0, BOOKS.length, ...data.items);
+        try{ localStorage.setItem("ces_books_v2", JSON.stringify(data.items)); }catch(e){}
+        if(window.cesDebug) window.cesDebug("📚 Books: "+data.items.join(", "));
+        if(typeof buildBookGrid === "function") buildBookGrid();
+        if(typeof buildAllBookSelects === "function") buildAllBookSelects();
+        if(typeof updateRangeSelects === "function") updateRangeSelects();
+      }
+    });
+    cesWatchSharedDoc("students", "shared", function(data){
+      if(data && Array.isArray(data.items)){
+        studentAccessList = data.items;
+        try{ localStorage.setItem(STUDENT_ACCESS_STORAGE, JSON.stringify(data.items)); }catch(e){}
+        if(typeof gateRenderTeacherList === "function") gateRenderTeacherList();
+        if(window.cesDebug) window.cesDebug("🔴 Live update: students!");
+      }
+    });
+    // Load Sound & Scene
+    await window.cesLoadSoundSceneNow();
+    if(typeof ssmBuildBooks === "function") ssmBuildBooks();
+  }catch(e){ console.error("Startup Firebase load error:", e); }
+}, 1200);
+</script>
 </head>
 <body>
 
@@ -4996,218 +5208,7 @@ ssEl("SSM_CLEAR").onclick=()=>{
 
 <button class="fs-global-btn" id="FS_GLOBAL_BTN" type="button" onclick="toggleGlobalFullscreen()">⛶ Full Screen</button>
 
-<script>
-/* CES — Firebase readiness promise */
-window.cesFirebaseReady = new Promise(function(resolve){
-  window._cesFirebaseResolve = resolve;
-});
-</script>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBj04p9bnOICYZjwrWAtOQRiiNpuk7jslE",
-  authDomain: "ces-platform.firebaseapp.com",
-  projectId: "ces-platform",
-  storageBucket: "ces-platform.firebasestorage.app",
-  messagingSenderId: "362566865240",
-  appId: "1:362566865240:web:df51ed10ffed2339e5552d",
-  measurementId: "G-P0MEZTRP94"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window.cesFirebase = {
-  enabled: true,
-  db,
-  doc,
-  getDoc,
-  setDoc,
-  onSnapshot
-};
-if(window._cesFirebaseResolve) window._cesFirebaseResolve();
-console.log("CES Firebase connected."); if(window.cesDebug) window.cesDebug("🔥 Firebase connected!");
-</script>
-
-<script>
-/* CES FIREBASE LIVE SYNC */
-function cesFbReady(){
-  return !!(window.cesFirebase && window.cesFirebase.enabled && window.cesFirebase.db);
-}
-async function cesSetSharedDoc(collectionName, docId, data){
-  if(!cesFbReady()){ console.warn("CES: Firebase not ready for SET", collectionName, docId); return false; }
-  try{
-    const fb = window.cesFirebase;
-    await fb.setDoc(fb.doc(fb.db, collectionName, docId), data);
-    console.log("CES: Firebase SET ok", collectionName, docId);
-    return true;
-  }catch(err){
-    console.error("CES: Firebase SET FAILED", collectionName, docId, err.code, err.message);
-    return false;
-  }
-}
-function cesWatchSharedDoc(collectionName, docId, callback){
-  if(!cesFbReady()){ console.warn("CES: Firebase not ready for WATCH", collectionName); return null; }
-  const fb = window.cesFirebase;
-  const ref = fb.doc(fb.db, collectionName, docId);
-  return fb.onSnapshot(ref, (snap) => {
-    if(snap.exists()){
-      console.log("CES: LIVE UPDATE", collectionName, docId);
-      if(window.cesDebug) window.cesDebug("🔴 LIVE: "+collectionName+"/"+docId+" updated!");
-      callback(snap.data());
-    }
-  }, (err) => {
-    console.error("CES: Watch failed", collectionName, err.code);
-  });
-}
-
-async function cesGetSharedDoc(collectionName, docId){
-  if(!cesFbReady()){ console.warn("CES: Firebase not ready for GET", collectionName, docId); if(window.cesDebug) window.cesDebug("⚠️ Firebase NOT READY for GET "+collectionName); return null; }
-  try{
-    const fb = window.cesFirebase;
-    const snap = await fb.getDoc(fb.doc(fb.db, collectionName, docId));
-    console.log("CES: Firebase GET", collectionName, docId, snap.exists()?"found":"empty"); if(window.cesDebug) window.cesDebug("GET "+collectionName+"/"+docId+" → "+(snap.exists()?"✅ found":"❌ empty"));
-    return snap.exists() ? snap.data() : null;
-  }catch(err){
-    console.error("CES: Firebase GET FAILED", collectionName, docId, err.code, err.message); if(window.cesDebug) window.cesDebug("GET FAILED "+collectionName+" → ❌ "+err.code);
-    return null;
-  }
-}
-window.cesSyncStudentsNow = async function(){
-  try{
-    const ok = await cesSetSharedDoc("students", "shared", {
-      items: studentAccessList,
-      updatedAt: Date.now()
-    });
-    return !!ok;
-  }catch(e){ console.error("cesSyncStudentsNow error:", e); return false; }
-};
-window.cesLoadStudentsNow = async function(){
-  try{
-    await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
-    const data = await cesGetSharedDoc("students", "shared");
-    if(data && Array.isArray(data.items)){
-      studentAccessList = data.items;
-      // also update localStorage as cache
-      try{ localStorage.setItem(STUDENT_ACCESS_STORAGE, JSON.stringify(studentAccessList)); }catch(e){}
-    } else {
-      gateLoadStudents(); // fallback to localStorage
-    }
-  }catch(e){ gateLoadStudents(); }
-  if(typeof window.gateRenderTeacherList === "function") window.gateRenderTeacherList();
-  return true;
-};
-window.cesSyncFlashcardsNow = async function(){
-  const books = Array.isArray(window.BOOKS) ? window.BOOKS : [];
-  const cards = Array.isArray(window.allCards) ? window.allCards : [];
-  const a = await cesSetSharedDoc("flashcards", "books", { items: books, updatedAt: Date.now() });
-  const b = await cesSetSharedDoc("flashcards", "cards", { items: cards, updatedAt: Date.now() });
-  return !!(a || b);
-};
-window.cesLoadFlashcardsNow = async function(){
-  await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
-  const booksData = await cesGetSharedDoc("flashcards", "books");
-  const cardsData = await cesGetSharedDoc("flashcards", "cards");
-  if(booksData && Array.isArray(booksData.items) && booksData.items.length > 0){
-    window.BOOKS = booksData.items;
-    if(typeof BOOKS !== "undefined") BOOKS.splice(0, BOOKS.length, ...booksData.items);
-    try{ localStorage.setItem("ces_books_v2", JSON.stringify(booksData.items)); }catch(e){}
-  }
-  if(cardsData && Array.isArray(cardsData.items) && cardsData.items.length > 0){
-    // Update the LOCAL allCards variable used by FC app
-    if(typeof allCards !== "undefined") allCards.splice(0, allCards.length, ...cardsData.items);
-    window.allCards = cardsData.items;
-    window.sbCards  = cardsData.items;
-    try{ localStorage.setItem("ces_flashcards_v2", JSON.stringify(cardsData.items)); }catch(e){}
-    // Re-render FC immediately
-    if(typeof buildBookGrid    === "function") buildBookGrid();
-    if(typeof buildLessonGrid  === "function") buildLessonGrid();
-    if(typeof updateRangeSelects === "function") updateRangeSelects();
-    if(typeof buildAllBookSelects === "function") buildAllBookSelects();
-    if(typeof applyDeck        === "function") applyDeck();
-    if(typeof buildList        === "function") buildList();
-    // Re-render SB
-    if(typeof sbmBuildBooks    === "function") sbmBuildBooks();
-    if(typeof sbmUpdateLessons === "function") sbmUpdateLessons();
-    console.log("CES: FC re-rendered with", cardsData.items.length, "cards from Firebase"); if(window.cesDebug) window.cesDebug("✅ FC loaded "+cardsData.items.length+" cards — re-rendered!");
-  }
-};
-window.cesSyncSoundSceneNow = async function(){
-  const rounds = Array.isArray(window.ssRounds) ? window.ssRounds : [];
-  return await cesSetSharedDoc("soundScene", "rounds", { items: rounds, updatedAt: Date.now() });
-};
-window.cesLoadSoundSceneNow = async function(){
-  const data = await cesGetSharedDoc("soundScene", "rounds");
-  if(data && Array.isArray(data.items)){
-    window.ssRounds = data.items;
-    try{
-      if(typeof window.ssRoundPayload === "function"){
-        localStorage.setItem("ces_ss_rounds_v1", JSON.stringify(window.ssRoundPayload(data.items)));
-      }
-    }catch(e){}
-    return true;
-  }
-  return false;
-};
-setTimeout(async ()=>{
-  try{
-    // Load students from Firebase
-    await window.cesLoadStudentsNow();
-    // Load flashcards from Firebase and re-render
-    await window.cesLoadFlashcardsNow(); // re-render is inside cesLoadFlashcardsNow
-
-    // Set up REALTIME listeners — auto-update when teacher saves from any device
-    await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
-    cesWatchSharedDoc("flashcards", "cards", function(data){
-      if(data && Array.isArray(data.items) && data.items.length > 0){
-        if(typeof allCards !== "undefined") allCards.splice(0, allCards.length, ...data.items);
-        window.allCards = data.items; window.sbCards = data.items;
-        try{ localStorage.setItem("ces_flashcards_v2", JSON.stringify(data.items)); }catch(e){}
-        if(typeof buildBookGrid    === "function") buildBookGrid();
-        if(typeof buildLessonGrid  === "function") buildLessonGrid();
-        if(typeof updateRangeSelects === "function") updateRangeSelects();
-        if(typeof buildAllBookSelects === "function") buildAllBookSelects();
-        if(typeof applyDeck        === "function") applyDeck();
-        if(typeof buildList        === "function") buildList();
-        if(typeof sbmBuildBooks    === "function") sbmBuildBooks();
-        console.log("CES: Live flashcards updated", data.items.length, "cards");
-        if(window.cesDebug) window.cesDebug("🃏 Cards: "+data.items.length+" | Books: "+(typeof BOOKS!=="undefined"?BOOKS.join(","):"?"));
-      }
-    });
-    cesWatchSharedDoc("flashcards", "books", function(data){
-      if(data && Array.isArray(data.items) && data.items.length > 0){
-        // Update BOTH global and local BOOKS
-        window.BOOKS = data.items;
-        if(typeof BOOKS !== "undefined") BOOKS.splice(0, BOOKS.length, ...data.items);
-        try{ localStorage.setItem("ces_books_v2", JSON.stringify(data.items)); }catch(e){}
-        if(window.cesDebug) window.cesDebug("📚 Books: "+data.items.join(", "));
-        if(typeof buildBookGrid === "function") buildBookGrid();
-        if(typeof buildAllBookSelects === "function") buildAllBookSelects();
-        if(typeof updateRangeSelects === "function") updateRangeSelects();
-      }
-    });
-    cesWatchSharedDoc("students", "shared", function(data){
-      if(data && Array.isArray(data.items)){
-        studentAccessList = data.items;
-        try{ localStorage.setItem(STUDENT_ACCESS_STORAGE, JSON.stringify(data.items)); }catch(e){}
-        if(typeof gateRenderTeacherList === "function") gateRenderTeacherList();
-        if(window.cesDebug) window.cesDebug("🔴 Live update: students!");
-      }
-    });
-    // Load Sound & Scene
-    await window.cesLoadSoundSceneNow();
-    if(typeof ssmBuildBooks === "function") ssmBuildBooks();
-  }catch(e){ console.error("Startup Firebase load error:", e); }
-}, 1200);
-</script>
 
 
 <div class="version-badge" id="CES_VERSION_BADGE">v2026.03</div>
