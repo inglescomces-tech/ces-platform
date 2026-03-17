@@ -3217,6 +3217,7 @@ async function loadCards(){
   $("CW").textContent = ""; $("CP").textContent = "Loading…";
   // 1. Firebase — primary source, works on all devices
   try{
+    await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
     const cardsData = await cesGetSharedDoc("flashcards", "cards");
     const booksData = await cesGetSharedDoc("flashcards", "books");
     if(cardsData && Array.isArray(cardsData.items) && cardsData.items.length > 0){
@@ -3276,6 +3277,7 @@ function shuffle(arr){ return [...arr].sort(()=>Math.random()-.5); }
 async function sbLoadCards(){
   // 1. Firebase first
   try{
+    await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
     const cardsData = await cesGetSharedDoc("flashcards", "cards");
     if(cardsData && Array.isArray(cardsData.items) && cardsData.items.length > 0){
       sbCards = cardsData.items;
@@ -4927,6 +4929,12 @@ ssEl("SSM_CLEAR").onclick=()=>{
 
 <button class="fs-global-btn" id="FS_GLOBAL_BTN" type="button" onclick="toggleGlobalFullscreen()">⛶ Full Screen</button>
 
+<script>
+/* CES — Firebase readiness promise */
+window.cesFirebaseReady = new Promise(function(resolve){
+  window._cesFirebaseResolve = resolve;
+});
+</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -4956,6 +4964,7 @@ window.cesFirebase = {
   getDoc,
   setDoc
 };
+if(window._cesFirebaseResolve) window._cesFirebaseResolve();
 console.log("CES Firebase connected.");
 </script>
 
@@ -4997,6 +5006,7 @@ window.cesSyncStudentsNow = async function(){
 };
 window.cesLoadStudentsNow = async function(){
   try{
+    await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
     const data = await cesGetSharedDoc("students", "shared");
     if(data && Array.isArray(data.items)){
       studentAccessList = data.items;
@@ -5017,6 +5027,7 @@ window.cesSyncFlashcardsNow = async function(){
   return !!(a || b);
 };
 window.cesLoadFlashcardsNow = async function(){
+  await Promise.race([window.cesFirebaseReady, new Promise(r=>setTimeout(r,5000))]);
   const booksData = await cesGetSharedDoc("flashcards", "books");
   const cardsData = await cesGetSharedDoc("flashcards", "cards");
   if(booksData && Array.isArray(booksData.items)){
