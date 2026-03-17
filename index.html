@@ -1967,6 +1967,22 @@ font-family:"DM Sans",sans-serif;
 <script>
 /* CES DEBUG */
 
+/* CES CACHE BUSTER — forces fresh data on every visit */
+(function(){
+  const VERSION = "1773762627";
+  const stored = localStorage.getItem("ces_version");
+  if(stored !== VERSION){
+    // New version — clear old localStorage cache
+    localStorage.removeItem("ces_flashcards_v2");
+    localStorage.removeItem("ces_books_v2");
+    localStorage.removeItem("ces_ss_rounds_v1");
+    localStorage.setItem("ces_version", VERSION);
+    console.log("CES: Cache cleared for version", VERSION);
+    if(window.cesDebug) window.cesDebug("🧹 Cache cleared! Fresh data from Firebase.");
+  }
+})();
+
+
 /* CES DEBUG */
 function cesDebug(msg){
   const el = document.getElementById('ces-debug-content');
@@ -2333,7 +2349,6 @@ const DEFAULT_BOOKS = ["A1","A1+","A2","A2+","B1","B1+","C1","C1+"];
 function saveBooks(){
   window.BOOKS = BOOKS;
   try{ localStorage.setItem("ces_books_v2", JSON.stringify(BOOKS)); }catch(e){}
-  try{ window.cesSyncFlashcardsNow && window.cesSyncFlashcardsNow(); }catch(e){}
   try{ window.cesSyncFlashcardsNow && window.cesSyncFlashcardsNow(); }catch(e){}
 }
 function loadBooks(){
