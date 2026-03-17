@@ -1483,6 +1483,17 @@ setTimeout(async ()=>{
 </script>
 </head>
 <body>
+<script>
+(function(){
+  var v="1773766107";
+  if(localStorage.getItem("ces_build")!==v){
+    localStorage.setItem("ces_build",v);
+    // Clear old book/card cache so Firefox loads fresh
+    localStorage.removeItem("ces_books_v2");
+    localStorage.removeItem("ces_flashcards_v2");
+  }
+})();
+</script>
 
 <div class="page active" id="PAGE_HOME">
   <div class="home-hero">
