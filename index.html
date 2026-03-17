@@ -1243,12 +1243,14 @@ font-family:"DM Sans",sans-serif;
 
 
 .version-badge{
-  position:fixed;right:12px;bottom:12px;z-index:9999;background:rgba(20,40,64,.92);color:#eef1f6;
-  border:1px solid rgba(200,208,220,.18);border-radius:12px;padding:8px 10px;font-family:"DM Sans",sans-serif;
-  font-size:11px;line-height:1.35;box-shadow:0 10px 24px rgba(0,0,0,.18);
+  position:fixed;right:8px;bottom:8px;z-index:9999;
+  background:rgba(20,40,64,.18);color:rgba(238,241,246,.35);
+  border:none;border-radius:5px;padding:2px 6px;
+  font-family:"DM Sans",sans-serif;
+  font-size:8px;line-height:1.2;box-shadow:none;pointer-events:none;
 }
-.version-badge strong{color:#fff;font-weight:700;}
-.version-badge .v-sub{opacity:.72;font-size:10px;display:block;margin-top:2px;}
+.version-badge strong{color:inherit;font-weight:500;}
+.version-badge .v-sub{display:none;font-size:8px;display:block;margin-top:2px;}
 </style>
 </head>
 <body>
@@ -2093,9 +2095,15 @@ async function teacherSaveStudentAccess(){
 
   try{
     localStorage.setItem(STUDENT_ACCESS_STORAGE, JSON.stringify(studentAccessList));
-  }catch(e){
-    if(msg) msg.textContent = "Could not save on this device.";
-    return;
+  }catch(e){}
+
+  // Save to Firebase
+  if(msg) msg.textContent = "Saving...";
+  const synced = await window.cesSyncStudentsNow();
+  if(synced){
+    if(msg){ msg.style.color="#2e7d45"; msg.textContent = "✓ Saved and synced to all devices!"; setTimeout(()=>{ if(msg) msg.textContent=""; msg.style.color=""; }, 3000); }
+  } else {
+    if(msg){ msg.style.color="#c49a3c"; msg.textContent = "⚠ Saved locally only (Firebase unavailable)."; setTimeout(()=>{ if(msg) msg.textContent=""; msg.style.color=""; }, 4000); }
   }
 
   gateLoadStudents();
@@ -2121,6 +2129,7 @@ async function teacherDeleteStudentAccess(login){
   try{
     localStorage.setItem(STUDENT_ACCESS_STORAGE, JSON.stringify(studentAccessList));
   }catch(e){}
+  await window.cesSyncStudentsNow();
   gateLoadStudents();
   gateRenderTeacherList();
 }
@@ -2236,9 +2245,14 @@ document.addEventListener("keydown",e=>{
     gateCloseTeacher();
   }
 });
-gateLoadStudents();
-gateLoadSession();
-gateUpdateUI();
+// Load students from Firebase on startup
+(async ()=>{
+  try{
+    await window.cesLoadStudentsNow();
+  }catch(e){ gateLoadStudents(); }
+  gateLoadSession();
+  gateUpdateUI();
+})();
 gateRefreshStudentLabels();
 setTimeout(()=>{ try{ window.cesLoadStudentsNow && window.cesLoadStudentsNow(); }catch(e){} }, 1500);
 </script>
@@ -4969,10 +4983,25 @@ async function cesGetSharedDoc(collectionName, docId){
   }
 }
 window.cesSyncStudentsNow = async function(){
-  return true;
+  try{
+    const ok = await cesSetSharedDoc("students", "shared", {
+      items: studentAccessList,
+      updatedAt: Date.now()
+    });
+    return !!ok;
+  }catch(e){ console.error("cesSyncStudentsNow error:", e); return false; }
 };
 window.cesLoadStudentsNow = async function(){
-  gateLoadStudents();
+  try{
+    const data = await cesGetSharedDoc("students", "shared");
+    if(data && Array.isArray(data.items)){
+      studentAccessList = data.items;
+      // also update localStorage as cache
+      try{ localStorage.setItem(STUDENT_ACCESS_STORAGE, JSON.stringify(studentAccessList)); }catch(e){}
+    } else {
+      gateLoadStudents(); // fallback to localStorage
+    }
+  }catch(e){ gateLoadStudents(); }
   if(typeof window.gateRenderTeacherList === "function") window.gateRenderTeacherList();
   return true;
 };
@@ -5024,6 +5053,6 @@ setTimeout(async ()=>{
 </script>
 
 
-<div class="version-badge" id="CES_VERSION_BADGE"><strong>CES Version</strong><br>v2026.03.14-students-local-only-1<span class="v-sub">students local stable first</span></div>
+<div class="version-badge" id="CES_VERSION_BADGE">v2026.03</div>
 </body>
 </html>
